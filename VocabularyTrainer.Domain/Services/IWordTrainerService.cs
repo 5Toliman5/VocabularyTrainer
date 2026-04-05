@@ -6,18 +6,18 @@ namespace VocabularyTrainer.Domain.Services
     {
         int GetWordsCount();
 
-		void AddWord(WordDto word);
+		Task AddWordAsync(WordDto word);
 
-        void DeleteCurrentWord();
+        Task DeleteCurrentWordAsync();
 
         WordDto? GetCurrentWord();
 
-        WordDto? GetNewWord();
+        Task<WordDto?> GetNewWordAsync();
 
-		void LoadWords();
+		Task LoadWordsAsync();
 
-        void SetUser(int userId);
+        void SetUser(UserModel user);
 
-        void UpdateCurrentWord(UpdateWeightType updateWeightType);
+        Task UpdateCurrentWordAsync(UpdateWeightType updateWeightType);
     }
 }

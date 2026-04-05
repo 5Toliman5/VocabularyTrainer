@@ -25,6 +25,7 @@ namespace WinApp
 		public bool ValidateAddWordInput()
 		{
 			TextBox[] inputTextBoxes = [InputWordTextBox, InputTranslationTextBox];
+
 			foreach (var textBox in inputTextBoxes)
 			{
 				if (string.IsNullOrEmpty(textBox.Text))
@@ -33,6 +34,7 @@ namespace WinApp
 					return false;
 				}
 			}
+
 			return true;
 		}
 
@@ -73,7 +75,6 @@ namespace WinApp
 			if (!string.IsNullOrEmpty(userName))
 			{
 				UserChanged?.Invoke(this, userName);
-				ShowNextWordRequested?.Invoke(sender, e);
 			}
 			else
 			{
@@ -87,24 +88,19 @@ namespace WinApp
 
 		private void ShowTranslation(object sender, EventArgs e) => ShowTranslationRequested?.Invoke(sender, e);
 
-		private void DeleteWord(object sender, EventArgs e)
-		{
-			DeleteWordRequested?.Invoke(sender, e);
-			ShowNextWordRequested?.Invoke(sender, e);
-		}
+		private void DeleteWord(object sender, EventArgs e) => DeleteWordRequested?.Invoke(sender, e);
 
 		private void TextBox_SwitchFocus(object? sender, KeyEventArgs e)
 		{
 			if (e.KeyCode is Keys.Up or Keys.Down)
 			{
-				if (sender == InputWordTextBox)
-					InputTranslationTextBox.Focus();
-				else if (sender == InputTranslationTextBox)
-					InputWordTextBox.Focus();
-				else if (sender == DisplayWordTextBox)
-					DisplayTranslationTextBox.Focus();
-				else if (sender == DisplayTranslationTextBox)
-					DisplayWordTextBox.Focus();
+				if (sender == InputWordTextBox) InputTranslationTextBox.Focus();
+
+				else if (sender == InputTranslationTextBox) InputWordTextBox.Focus();
+
+				else if (sender == DisplayWordTextBox) DisplayTranslationTextBox.Focus();
+
+				else if (sender == DisplayTranslationTextBox) DisplayWordTextBox.Focus();
 
 				e.Handled = true;
 			}

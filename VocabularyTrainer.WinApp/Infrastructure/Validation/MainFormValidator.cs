@@ -1,15 +1,17 @@
 ﻿using System.Text.RegularExpressions;
-using VocabularyTrainer.WinApp.Infrastructure;
 
 namespace VocabularyTrainer.WinApp.Infrastructure.Validation
 {
-    internal static class MainFormValidator
+    internal static partial class MainFormValidator
     {
         public static bool ValidateTextBoxInput(TextBox textBox)
         {
-            var regex = new Regex(Constants.InputTextBoxRegex);
+            var regex = TextBoxValidationRegex();
             if (string.IsNullOrEmpty(textBox.Text)) return true;
             return regex.IsMatch(textBox.Text);
         }
+
+        [GeneratedRegex(Constants.InputTextBoxRegex)]
+        private static partial Regex TextBoxValidationRegex();
     }
 }

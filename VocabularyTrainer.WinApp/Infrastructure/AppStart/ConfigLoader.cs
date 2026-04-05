@@ -1,4 +1,4 @@
-﻿using System.Configuration;
+using Microsoft.Extensions.Configuration;
 
 namespace VocabularyTrainer.WinApp.Infrastructure.AppStart
 {
@@ -6,14 +6,20 @@ namespace VocabularyTrainer.WinApp.Infrastructure.AppStart
 	{
 		public static AppConfig Load()
 		{
-			var connString = ConfigurationManager.AppSettings["ConnectionString"];
-			if (string.IsNullOrEmpty(connString))
-				throw new ConfigurationErrorsException("Connection string is not configured.");
+			var configuration = new ConfigurationBuilder()
+				.SetBasePath(AppContext.BaseDirectory)
+				.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+				.Build();
 
-			if (!int.TryParse(ConfigurationManager.AppSettings["MaxWordWeight"], out var weight))
-				throw new ConfigurationErrorsException("MaxWordWeight is not configured.");
+			var config = configuration.Get<AppConfig>();
 
-			return new AppConfig(connString, weight);
+			if (config is null || string.IsNullOrEmpty(config.ConnectionString))
+				throw new InvalidOperationException("ConnectionString is not configured in appsettings.json.");
+
+			if (config.MaxWordWeight <= 0)
+				throw new InvalidOperationException("MaxWordWeight is not configured in appsettings.json.");
+
+			return config;
 		}
 	}
 }

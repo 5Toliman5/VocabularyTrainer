@@ -1,4 +1,4 @@
-﻿using VocabularyTrainer.Domain.Models;
+using VocabularyTrainer.Domain.Models;
 using VocabularyTrainer.Domain.Services;
 using VocabularyTrainer.WinApp.Infrastructure;
 using VocabularyTrainer.WinApp.View;
@@ -11,8 +11,9 @@ namespace VocabularyTrainer.WinApp.Presenter
         private readonly IUserService _userService;
         private readonly IWordTrainerService _wordTrainerService;
 
-        private int? _userId;
+        private UserModel? _user;
 		private bool _translationWasShown = false;
+		private bool _isBusy = false;
 
 		public MainFormPresenter(IMainFormView view, IUserService userService, IWordTrainerService wordTrainerService)
 		{
@@ -31,41 +32,96 @@ namespace VocabularyTrainer.WinApp.Presenter
 			_view.DeleteWordRequested += OnDeleteWordRequested;
 		}
 
-		private void OnUserChanged(object? sender, string userName)
+		private async void OnUserChanged(object? sender, string userName)
 		{
-			_userId = _userService.GetUserId(userName);
-			if (!ValidateUser()) 
-				return;
-			_wordTrainerService.SetUser(_userId.Value);
+			await ExecuteIfFreeAsync(async () =>
+			{
+				_user = await _userService.GetAsync(userName);
+
+				if (!ValidateUser()) return;
+
+				_wordTrainerService.SetUser(_user!);
+
+				await ShowNextWordCoreAsync();
+			});
 		}
 
-		private void OnAddWordRequested(object? sender, EventArgs e)
-        {
-			if (!_view.ValidateAddWordInput())
-				return;
-			
-			if (!ValidateUser())
-				return;
+		private async void OnAddWordRequested(object? sender, EventArgs e)
+		{
+			await ExecuteIfFreeAsync(async () =>
+			{
+				if (!_view.ValidateAddWordInput()) return;
 
-			var word = new WordDto(_view.InputWord, _view.InputTranslation);
-			_wordTrainerService.AddWord(word);
-			_view.ClearAddWordInput();
+				if (!ValidateUser()) return;
+
+				var word = new WordDto(_view.InputWord, _view.InputTranslation);
+
+				await _wordTrainerService.AddWordAsync(word);
+
+				_view.ClearAddWordInput();
+			});
 		}
 
-		private void OnShowNextWordRequested(object? sender, EventArgs e)
-        {
+		private async void OnShowNextWordRequested(object? sender, EventArgs e)
+		{
+			await ExecuteIfFreeAsync(ShowNextWordCoreAsync);
+		}
+
+		private async void OnShowTranslationRequested(object? sender, EventArgs e)
+		{
+			await ExecuteIfFreeAsync(async () =>
+			{
+				var currentWord = _wordTrainerService.GetCurrentWord();
+
+				if (currentWord is null) return;
+
+				await _wordTrainerService.UpdateCurrentWordAsync(UpdateWeightType.Increase);
+
+				_view.DisplayTranslation(currentWord.Translation);
+
+				_view.SetShowNextButtonText(Constants.ChangedShowNextButtonText);
+
+				_translationWasShown = true;
+			});
+		}
+
+		private async void OnDeleteWordRequested(object? sender, EventArgs e)
+		{
+			await ExecuteIfFreeAsync(async () =>
+			{
+				if (_wordTrainerService.GetCurrentWord() is null) return;
+
+				await _wordTrainerService.DeleteCurrentWordAsync();
+
+				await ShowNextWordCoreAsync();
+			});
+		}
+
+		private async Task ExecuteIfFreeAsync(Func<Task> action)
+		{
+			if (_isBusy) return;
+			try
+			{
+				_isBusy = true;
+				await action();
+			}
+			finally
+			{
+				_isBusy = false;
+			}
+		}
+
+		private async Task ShowNextWordCoreAsync()
+		{
 			_view.ClearShowWordOutput();
 
-			if (!_userId.HasValue)
-				return;
+			if (_user is null) return;
 
-			if (!_translationWasShown)
-			{
-				_wordTrainerService.UpdateCurrentWord(UpdateWeightType.Decrease);
-			}
+			if (!_translationWasShown) await _wordTrainerService.UpdateCurrentWordAsync(UpdateWeightType.Decrease);
+
 			_translationWasShown = false;
 
-			var word = _wordTrainerService.GetNewWord();
+			var word = await _wordTrainerService.GetNewWordAsync();
 			if (word is null)
 			{
 				_view.ShowError(Constants.NoWordsFoundError);
@@ -74,29 +130,11 @@ namespace VocabularyTrainer.WinApp.Presenter
 
 			_view.DisplayNewWord(word.Value);
 			_view.SetShowNextButtonText(Constants.DefaultShowNextButtonText);
-        }
-
-		private void OnShowTranslationRequested(object? sender, EventArgs e)
-        {
-            var currentWord = _wordTrainerService.GetCurrentWord();
-			if (currentWord is null) 
-                return;
-
-			_wordTrainerService.UpdateCurrentWord(UpdateWeightType.Increase);
-			_view.DisplayTranslation(currentWord.Translation);
-			_view.SetShowNextButtonText(Constants.ChangedShowNextButtonText);
-        }
-
-		private void OnDeleteWordRequested(object? sender, EventArgs e)
-        {
-            if (_wordTrainerService.GetCurrentWord() is null)
-                return;
-			_wordTrainerService.DeleteCurrentWord();
 		}
 
 		private bool ValidateUser()
 		{
-			if (!_userId.HasValue)
+			if (_user is null)
 			{
 				_view.ShowError("User has not been found!");
 				return false;

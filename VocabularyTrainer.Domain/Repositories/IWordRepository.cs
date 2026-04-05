@@ -4,12 +4,12 @@ namespace VocabularyTrainer.Domain.Repositories
 {
 	public interface IWordRepository
 	{
-		List<WordDto> GetAllWords(int userId);
+		Task<List<WordDto>> GetAllAsync(int userId);
 
-		void AddWord(AddWordRequest request);
+		Task AddAsync(AddWordRequest request);
 
-		void DeleteWord(EditWordRequest request);
+		Task DeleteAsync(EditWordRequest request);
 
-		void UpdateWordWeight(UpdateWordWeightRequest request);
+		Task UpdateWeightAsync(UpdateWordWeightRequest request);
 	}
 }

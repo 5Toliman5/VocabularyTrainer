@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using Microsoft.Data.SqlClient;
 using VocabularyTrainer.DataAccess.SqlQueries;
 using VocabularyTrainer.Domain.Entities;
@@ -7,78 +7,60 @@ using VocabularyTrainer.Domain.Repositories;
 
 namespace VocabularyTrainer.DataAccess.Repositories
 {
-	public class WordRepository : IWordRepository
+	public class WordRepository(string connectionString) : IWordRepository
 	{
-		private readonly string _connectionString;
-
-		public WordRepository(string connectionString)
+        public async Task<List<WordDto>> GetAllAsync(int userId)
 		{
-			_connectionString = connectionString;
-		}
-
-		public List<WordDto> GetAllWords(int userId)
-		{
-			using var connection = new SqlConnection(_connectionString);
-			connection.Open();
-			var words = connection.Query<WordDto>(WordSqlQueries.SelectAllWords, new { UserId = userId });			
-			connection.Close();
+			await using var connection = new SqlConnection(connectionString);
+			var words = await connection.QueryAsync<WordDto>(WordSqlQueries.SelectAllWords, new { UserId = userId });
 			return words.ToList();
 		}
 
-		public void AddWord(AddWordRequest request)
+		public async Task AddAsync(AddWordRequest request)
 		{
-			using var connection = new SqlConnection(_connectionString);
-			connection.Open();
-			using var transaction = connection.BeginTransaction();
+			await using var connection = new SqlConnection(connectionString);
+			await connection.OpenAsync();
+			await using var transaction = await connection.BeginTransactionAsync();
 			try
 			{
-				var insertedWordId = connection.ExecuteScalar<int>(WordSqlQueries.InsertWord, request.Word, transaction);
-				connection.Execute(WordSqlQueries.InsertUserWord, new EditWordRequest(insertedWordId, request.UserId), transaction);
-				transaction.Commit();
+				var insertedWordId = await connection.ExecuteScalarAsync<int>(WordSqlQueries.InsertWord, request.Word, transaction);
+				await connection.ExecuteAsync(WordSqlQueries.InsertUserWord, new EditWordRequest(insertedWordId, request.UserId), transaction);
+				await transaction.CommitAsync();
 			}
 			catch
 			{
-				transaction.Rollback();
+				await transaction.RollbackAsync();
 				throw;
-			}
-			finally
-			{
-				connection.Close();
 			}
 		}
 
-		public void DeleteWord(EditWordRequest request)
+		public async Task DeleteAsync(EditWordRequest request)
 		{
-			using var connection = new SqlConnection(_connectionString);
-			connection.Open();
-			using var transaction = connection.BeginTransaction();
+			await using var connection = new SqlConnection(connectionString);
+			await connection.OpenAsync();
+			await using var transaction = await connection.BeginTransactionAsync();
 			try
 			{
-				connection.Execute(WordSqlQueries.DeleteUserWord, request, transaction);
+				await connection.ExecuteAsync(WordSqlQueries.DeleteUserWord, request, transaction);
 
-				var userCount = connection.ExecuteScalar<int>(WordSqlQueries.SelectUserCountOfWord, request, transaction);
+				var userCount = await connection.ExecuteScalarAsync<int>(WordSqlQueries.SelectUserCountOfWord, request, transaction);
 				if (userCount == 0)
-					connection.Execute(WordSqlQueries.DeleteWord, request, transaction);
-				transaction.Commit();
+					await connection.ExecuteAsync(WordSqlQueries.DeleteWord, request, transaction);
+
+				await transaction.CommitAsync();
 			}
 			catch
 			{
-				transaction.Rollback();
+				await transaction.RollbackAsync();
 				throw;
-			}
-			finally
-			{
-				connection.Close();
 			}
 		}
 
-		public void UpdateWordWeight(UpdateWordWeightRequest request)
+		public async Task UpdateWeightAsync(UpdateWordWeightRequest request)
 		{
 			var query = string.Format(WordSqlQueries.UpdateWordWeight, request.Operator);
-			using var connection = new SqlConnection(_connectionString);
-			connection.Open();
-			connection.Execute(query, request);
-			connection.Close();
+			await using var connection = new SqlConnection(connectionString);
+			await connection.ExecuteAsync(query, request);
 		}
 	}
 }

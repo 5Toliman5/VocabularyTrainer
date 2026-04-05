@@ -1,7 +1,9 @@
-﻿namespace VocabularyTrainer.Domain.Services
+﻿using VocabularyTrainer.Domain.Models;
+
+namespace VocabularyTrainer.Domain.Services
 {
     public interface IUserService
     {
-		int? GetUserId(string userName);
+		Task<UserModel?> GetAsync(string userName);
 	}
 }
