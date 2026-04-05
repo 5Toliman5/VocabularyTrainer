@@ -1,23 +1,25 @@
-﻿using VocabularyTrainer.Domain.Models;
+using VocabularyTrainer.Domain.Models;
 
 namespace VocabularyTrainer.Domain.Services
 {
-    public interface IWordTrainerService
-    {
-        int GetWordsCount();
+	public interface IWordTrainerService
+	{
+		int GetWordsCount();
 
-		Task AddWordAsync(WordDto word);
+		Task AddWordAsync(WordDto word, int dictionaryId);
 
-        Task DeleteCurrentWordAsync();
+		Task DeleteCurrentWordAsync();
 
-        WordDto? GetCurrentWord();
+		WordDto? GetCurrentWord();
 
-        Task<WordDto?> GetNewWordAsync();
+		Task<WordDto?> GetNewWordAsync();
 
 		Task LoadWordsAsync();
 
-        void SetUser(UserModel user);
+		void SetUser(UserModel user);
 
-        Task UpdateCurrentWordAsync(UpdateWeightType updateWeightType);
-    }
+		void SetDictionary(int? dictionaryId);
+
+		Task UpdateCurrentWordAsync(UpdateWeightType updateWeightType);
+	}
 }

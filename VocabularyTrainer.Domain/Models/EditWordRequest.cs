@@ -1,4 +1,4 @@
-﻿namespace VocabularyTrainer.Domain.Models
+namespace VocabularyTrainer.Domain.Models
 {
-	public record EditWordRequest(int WordId, int UserId);
+	public record EditWordRequest(int WordId, int UserId, int DictionaryId);
 }

@@ -1,10 +1,10 @@
-﻿using VocabularyTrainer.Domain.Models;
+using VocabularyTrainer.Domain.Models;
 
 namespace VocabularyTrainer.Domain.Repositories
 {
 	public interface IWordRepository
 	{
-		Task<List<WordDto>> GetAllAsync(int userId);
+		Task<List<WordDto>> GetAllAsync(int userId, int? dictionaryId = null);
 
 		Task AddAsync(AddWordRequest request);
 

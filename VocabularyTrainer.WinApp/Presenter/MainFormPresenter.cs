@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+using VocabularyTrainer.Domain.Exceptions;
 using VocabularyTrainer.Domain.Models;
 using VocabularyTrainer.Domain.Services;
 using VocabularyTrainer.WinApp.Infrastructure;
@@ -5,31 +7,59 @@ using VocabularyTrainer.WinApp.View;
 
 namespace VocabularyTrainer.WinApp.Presenter
 {
-	public class MainFormPresenter
+	public class MainFormPresenter : IDisposable
 	{
-        private readonly IMainFormView _view;
-        private readonly IUserService _userService;
-        private readonly IWordTrainerService _wordTrainerService;
+		private readonly IMainFormView _view;
+		private readonly IUserService _userService;
+		private readonly IWordTrainerService _wordTrainerService;
+		private readonly IDictionaryService _dictionaryService;
+		private readonly ILogger<MainFormPresenter> _logger;
 
-        private UserModel? _user;
+		private UserModel? _user;
 		private bool _translationWasShown = false;
 		private bool _isBusy = false;
 
-		public MainFormPresenter(IMainFormView view, IUserService userService, IWordTrainerService wordTrainerService)
+		public MainFormPresenter(
+			IMainFormView view,
+			IUserService userService,
+			IWordTrainerService wordTrainerService,
+			IDictionaryService dictionaryService,
+			ILogger<MainFormPresenter> logger)
 		{
 			_view = view;
 			_userService = userService;
 			_wordTrainerService = wordTrainerService;
+			_dictionaryService = dictionaryService;
+			_logger = logger;
 			SubscribeToEvents();
 		}
 
 		private void SubscribeToEvents()
 		{
 			_view.UserChanged += OnUserChanged;
+			_view.TrainingDictionaryChanged += OnTrainingDictionaryChanged;
 			_view.AddWordRequested += OnAddWordRequested;
 			_view.ShowNextWordRequested += OnShowNextWordRequested;
 			_view.ShowTranslationRequested += OnShowTranslationRequested;
 			_view.DeleteWordRequested += OnDeleteWordRequested;
+			_view.AddDictionaryRequested += OnAddDictionaryRequested;
+			_view.UpdateDictionaryRequested += OnUpdateDictionaryRequested;
+			_view.DeleteDictionaryRequested += OnDeleteDictionaryRequested;
+			_view.MyWordsPageEntered += OnMyWordsPageEntered;
+		}
+
+		public void Dispose()
+		{
+			_view.UserChanged -= OnUserChanged;
+			_view.TrainingDictionaryChanged -= OnTrainingDictionaryChanged;
+			_view.AddWordRequested -= OnAddWordRequested;
+			_view.ShowNextWordRequested -= OnShowNextWordRequested;
+			_view.ShowTranslationRequested -= OnShowTranslationRequested;
+			_view.DeleteWordRequested -= OnDeleteWordRequested;
+			_view.AddDictionaryRequested -= OnAddDictionaryRequested;
+			_view.UpdateDictionaryRequested -= OnUpdateDictionaryRequested;
+			_view.DeleteDictionaryRequested -= OnDeleteDictionaryRequested;
+			_view.MyWordsPageEntered -= OnMyWordsPageEntered;
 		}
 
 		private async void OnUserChanged(object? sender, string userName)
@@ -42,6 +72,19 @@ namespace VocabularyTrainer.WinApp.Presenter
 
 				_wordTrainerService.SetUser(_user!);
 
+				var dicts = await _dictionaryService.GetAllAsync(_user!.Id);
+				_view.LoadDictionaries(dicts);
+
+				await ShowNextWordCoreAsync();
+			});
+		}
+
+		private async void OnTrainingDictionaryChanged(object? sender, int? dictionaryId)
+		{
+			await ExecuteIfFreeAsync(async () =>
+			{
+				if (_user is null) return;
+				_wordTrainerService.SetDictionary(dictionaryId);
 				await ShowNextWordCoreAsync();
 			});
 		}
@@ -54,9 +97,16 @@ namespace VocabularyTrainer.WinApp.Presenter
 
 				if (!ValidateUser()) return;
 
+				var dictionaryId = _view.SelectedAddingDictionaryId;
+				if (dictionaryId is null)
+				{
+					_view.ShowAddingDictionaryError(Constants.NoDictionaryAvailable);
+					return;
+				}
+
 				var word = new WordDto(_view.InputWord, _view.InputTranslation);
 
-				await _wordTrainerService.AddWordAsync(word);
+				await _wordTrainerService.AddWordAsync(word, dictionaryId.Value);
 
 				_view.ClearAddWordInput();
 			});
@@ -97,6 +147,92 @@ namespace VocabularyTrainer.WinApp.Presenter
 			});
 		}
 
+		private async void OnAddDictionaryRequested(object? sender, EventArgs e)
+		{
+			await ExecuteIfFreeAsync(async () =>
+			{
+				if (!ValidateUser()) return;
+
+				var name = _view.InputDictionaryName.Trim();
+				if (string.IsNullOrEmpty(name))
+				{
+					_view.ShowError(Constants.DictionaryNameRequired);
+					return;
+				}
+
+				await _dictionaryService.AddAsync(_user!.Id, name, _view.InputLanguageCode);
+
+				var dicts = await _dictionaryService.GetAllAsync(_user!.Id);
+				_view.LoadDictionaries(dicts);
+				_view.ClearMyWordsDictionaryInput();
+			});
+		}
+
+		private async void OnUpdateDictionaryRequested(object? sender, EventArgs e)
+		{
+			await ExecuteIfFreeAsync(async () =>
+			{
+				if (!ValidateUser()) return;
+
+				var dictionaryId = _view.SelectedMyWordsDictionaryId;
+				if (dictionaryId is null) return;
+
+				var name = _view.InputDictionaryName.Trim();
+				if (string.IsNullOrEmpty(name))
+				{
+					_view.ShowError(Constants.DictionaryNameRequired);
+					return;
+				}
+
+				await _dictionaryService.UpdateAsync(dictionaryId.Value, name, _view.InputLanguageCode);
+
+				var dicts = await _dictionaryService.GetAllAsync(_user!.Id);
+				_view.LoadDictionaries(dicts);
+			});
+		}
+
+		private async void OnDeleteDictionaryRequested(object? sender, EventArgs e)
+		{
+			await ExecuteIfFreeAsync(async () =>
+			{
+				if (!ValidateUser()) return;
+
+				var dictionaryId = _view.SelectedMyWordsDictionaryId;
+				if (dictionaryId is null) return;
+
+				var dicts = await _dictionaryService.GetAllAsync(_user!.Id);
+				if (dicts.Count <= 1)
+				{
+					_view.ShowError(Constants.CannotDeleteLastDictionary);
+					return;
+				}
+
+				await _dictionaryService.DeleteAsync(dictionaryId.Value);
+
+				var updated = await _dictionaryService.GetAllAsync(_user!.Id);
+				_view.LoadDictionaries(updated);
+				_view.ClearMyWordsDictionaryInput();
+
+				_wordTrainerService.SetDictionary(null);
+			});
+		}
+
+		private async void OnMyWordsPageEntered(object? sender, EventArgs e)
+		{
+			await ExecuteIfFreeAsync(async () =>
+			{
+				if (_user is null)
+				{
+					_user = await _userService.GetAsync(_view.CurrentUserName);
+					if (!ValidateUser()) return;
+					_wordTrainerService.SetUser(_user!);
+				}
+
+				var dicts = await _dictionaryService.GetAllAsync(_user!.Id);
+				_view.LoadDictionaries(dicts);
+			});
+		}
+
 		private async Task ExecuteIfFreeAsync(Func<Task> action)
 		{
 			if (_isBusy) return;
@@ -104,6 +240,21 @@ namespace VocabularyTrainer.WinApp.Presenter
 			{
 				_isBusy = true;
 				await action();
+			}
+			catch (DuplicateNameException ex)
+			{
+				_logger.LogWarning(ex, "Duplicate dictionary name attempted");
+				_view.ShowError(Constants.DuplicateDictionaryName);
+			}
+			catch (DatabaseException ex)
+			{
+				_logger.LogError(ex, "Database error");
+				_view.ShowError(Constants.DatabaseError);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Unexpected error");
+				_view.ShowError(string.Format(Constants.UnexpectedError, ex.Message));
 			}
 			finally
 			{
@@ -129,6 +280,7 @@ namespace VocabularyTrainer.WinApp.Presenter
 			}
 
 			_view.DisplayNewWord(word.Value);
+			_view.SetCurrentWordDictionary(word.DictionaryName);
 			_view.SetShowNextButtonText(Constants.DefaultShowNextButtonText);
 		}
 
@@ -136,10 +288,10 @@ namespace VocabularyTrainer.WinApp.Presenter
 		{
 			if (_user is null)
 			{
-				_view.ShowError("User has not been found!");
+				_view.ShowError(string.Format(Constants.UserNotFoundError, _view.CurrentUserName));
 				return false;
 			}
 			return true;
 		}
-    }
+	}
 }
