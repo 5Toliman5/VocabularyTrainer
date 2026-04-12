@@ -7,8 +7,10 @@ using VocabularyTrainer.Domain.Repositories;
 
 namespace VocabularyTrainer.DataAccess.Repositories
 {
+	/// <summary>SQL Server implementation of <see cref="IUserRepository"/> using Dapper.</summary>
 	public class UserRepository(string connectionString) : IUserRepository
 	{
+		/// <inheritdoc/>
 		public async Task<UserModel?> GetUserAsync(string userName)
 		{
 			try

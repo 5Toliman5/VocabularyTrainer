@@ -7,12 +7,14 @@ using TextBox = System.Windows.Forms.TextBox;
 
 namespace WinApp
 {
+	/// <summary>Main application form; implements <see cref="IMainFormView"/> and wires UI controls to view events.</summary>
 	public partial class MainForm : Form, IMainFormView
 	{
 		private readonly CultureInfo[] _neutralCultures;
 		private List<DictionaryDto> _dictionaryList = [];
 		private bool _suppressDictionaryEvents = false;
 
+		/// <summary>Initializes the form, populates the language combo box, and sets up control defaults.</summary>
 		public MainForm()
 		{
 			InitializeComponent();
@@ -24,32 +26,49 @@ namespace WinApp
 		}
 
 		// --- Events ---
+		/// <inheritdoc/>
 		public event EventHandler<string>? UserChanged;
+		/// <inheritdoc/>
 		public event EventHandler<int?>? TrainingDictionaryChanged;
+		/// <inheritdoc/>
 		public event EventHandler? AddWordRequested;
+		/// <inheritdoc/>
 		public event EventHandler? ShowNextWordRequested;
+		/// <inheritdoc/>
 		public event EventHandler? ShowTranslationRequested;
+		/// <inheritdoc/>
 		public event EventHandler? DeleteWordRequested;
+		/// <inheritdoc/>
 		public event EventHandler? AddDictionaryRequested;
+		/// <inheritdoc/>
 		public event EventHandler? UpdateDictionaryRequested;
+		/// <inheritdoc/>
 		public event EventHandler? DeleteDictionaryRequested;
+		/// <inheritdoc/>
 		public event EventHandler? MyWordsPageEntered;
 
 		// --- Properties ---
+		/// <inheritdoc/>
 		public string CurrentUserName => CurrentUserTextBox.Text;
 
+		/// <inheritdoc/>
 		public string InputWord => InputWordTextBox.Text;
 
+		/// <inheritdoc/>
 		public string InputTranslation => InputTranslationTextBox.Text;
 
+		/// <inheritdoc/>
 		public int? SelectedAddingDictionaryId =>
 			DictionaryAddingComboBox.SelectedItem is DictionaryComboItem item ? item.Id : null;
 
+		/// <inheritdoc/>
 		public int? SelectedMyWordsDictionaryId =>
 			DictionariesListBox.SelectedItem is DictionaryDto dto ? dto.Id : null;
 
+		/// <inheritdoc/>
 		public string InputDictionaryName => DictionaryNameInputTextBox.Text;
 
+		/// <inheritdoc/>
 		public string? InputLanguageCode
 		{
 			get
@@ -63,6 +82,7 @@ namespace WinApp
 		}
 
 		// --- Word display ---
+		/// <inheritdoc/>
 		public bool ValidateAddWordInput()
 		{
 			TextBox[] inputTextBoxes = [InputWordTextBox, InputTranslationTextBox];
@@ -79,6 +99,7 @@ namespace WinApp
 			return true;
 		}
 
+		/// <inheritdoc/>
 		public void ClearAddWordInput()
 		{
 			InputWordTextBox.Text = string.Empty;
@@ -86,6 +107,7 @@ namespace WinApp
 			AddWordsErrorProvider.Clear();
 		}
 
+		/// <inheritdoc/>
 		public void ClearShowWordOutput()
 		{
 			DisplayWordTextBox.Text = string.Empty;
@@ -93,17 +115,23 @@ namespace WinApp
 			DictionaryOfWordLabel.Text = string.Empty;
 		}
 
+		/// <inheritdoc/>
 		public void ShowError(string message) => MessageBox.Show(message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
+		/// <inheritdoc/>
 		public void DisplayNewWord(string word) => DisplayWordTextBox.Text = word;
 
+		/// <inheritdoc/>
 		public void DisplayTranslation(string translation) => DisplayTranslationTextBox.Text = translation;
 
+		/// <inheritdoc/>
 		public void SetCurrentWordDictionary(string dictName) => DictionaryOfWordLabel.Text = dictName;
 
+		/// <inheritdoc/>
 		public void SetShowNextButtonText(string text) => ShowNextButton.Text = text;
 
 		// --- Dictionary management ---
+		/// <inheritdoc/>
 		public void LoadDictionaries(IReadOnlyList<DictionaryDto> dicts)
 		{
 			_dictionaryList = dicts.ToList();
@@ -121,11 +149,13 @@ namespace WinApp
 			}
 		}
 
+		/// <inheritdoc/>
 		public void ShowAddingDictionaryError(string message)
 		{
 			AddWordsErrorProvider.SetError(DictionaryAddingComboBox, message);
 		}
 
+		/// <inheritdoc/>
 		public void ClearMyWordsDictionaryInput()
 		{
 			DictionaryNameInputTextBox.Text = string.Empty;
@@ -152,7 +182,7 @@ namespace WinApp
 			DictionaryTrainingComboBox.Items.Clear();
 			DictionaryTrainingComboBox.Items.Add(new DictionaryComboItem(null, "All"));
 			foreach (var d in dicts)
-				DictionaryTrainingComboBox.Items.Add(new DictionaryComboItem(d.Id, FormatDictDisplay(d)));
+				DictionaryTrainingComboBox.Items.Add(new DictionaryComboItem(d.Id, d.ToString()));
 
 			var targetIndex = 0;
 			if (previousId.HasValue)
@@ -175,7 +205,7 @@ namespace WinApp
 
 			DictionaryAddingComboBox.Items.Clear();
 			foreach (var d in dicts)
-				DictionaryAddingComboBox.Items.Add(new DictionaryComboItem(d.Id, FormatDictDisplay(d)));
+				DictionaryAddingComboBox.Items.Add(new DictionaryComboItem(d.Id, d.ToString()));
 
 			if (DictionaryAddingComboBox.Items.Count == 0) return;
 
@@ -215,9 +245,6 @@ namespace WinApp
 				}
 			}
 		}
-
-		private static string FormatDictDisplay(DictionaryDto d) =>
-			string.IsNullOrEmpty(d.LanguageCode) ? d.Name : $"{d.Name} ({d.LanguageCode})";
 
 		private int? SelectedTrainingDictionaryId =>
 			DictionaryTrainingComboBox.SelectedItem is DictionaryComboItem item ? item.Id : null;
@@ -284,7 +311,7 @@ namespace WinApp
 			var textBox = (TextBox)sender;
 			if (!MainFormValidator.ValidateTextBoxInput(textBox))
 			{
-				AddWordsErrorProvider.SetError(textBox, "Input must contain only letters and digits.");
+				AddWordsErrorProvider.SetError(textBox, "Input must contain only letters, apostrophes, hyphens, and spaces.");
 				textBox.Text = string.Empty;
 			}
 		}

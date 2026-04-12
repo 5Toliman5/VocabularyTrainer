@@ -4,22 +4,32 @@ using VocabularyTrainer.Domain.Services;
 
 namespace VocabularyTrainer.BusinessLogic.Services
 {
+	/// <summary>Implements dictionary management business logic.</summary>
 	public class DictionaryService(IDictionaryRepository repository) : IDictionaryService
 	{
-		public Task<List<DictionaryDto>> GetAllAsync(int userId) =>
-			repository.GetAllAsync(userId);
+        /// <inheritdoc/>
+        public Task<List<DictionaryDto>> GetAllAsync(int userId)
+        {
+            return repository.GetAllAsync(userId);
+        }
 
-		public async Task<DictionaryDto> AddAsync(int userId, string name, string? languageCode)
+        /// <inheritdoc/>
+        public async Task<DictionaryDto> AddAsync(AddDictionaryRequest request)
 		{
-			var request = new AddDictionaryRequest(userId, name, languageCode);
 			var id = await repository.AddAsync(request);
-			return new DictionaryDto(id, name, languageCode);
+			return new DictionaryDto(id, request.Name, request.LanguageCode);
 		}
 
-		public Task UpdateAsync(int dictionaryId, string name, string? languageCode) =>
-			repository.UpdateAsync(new UpdateDictionaryRequest(dictionaryId, name, languageCode));
+        /// <inheritdoc/>
+        public Task UpdateAsync(UpdateDictionaryRequest request)
+        {
+            return repository.UpdateAsync(request);
+        }
 
-		public Task DeleteAsync(int dictionaryId) =>
-			repository.DeleteAsync(dictionaryId);
-	}
+        /// <inheritdoc/>
+        public Task DeleteAsync(int dictionaryId, int userId)
+        {
+            return repository.DeleteAsync(dictionaryId, userId);
+        }
+    }
 }

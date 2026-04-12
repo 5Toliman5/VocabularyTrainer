@@ -1,15 +1,16 @@
 using Dapper;
 using Microsoft.Data.SqlClient;
 using VocabularyTrainer.DataAccess.SqlQueries;
-using VocabularyTrainer.Domain.Entities;
 using VocabularyTrainer.Domain.Exceptions;
 using VocabularyTrainer.Domain.Models;
 using VocabularyTrainer.Domain.Repositories;
 
 namespace VocabularyTrainer.DataAccess.Repositories
 {
+	/// <summary>SQL Server implementation of <see cref="IWordRepository"/> using Dapper.</summary>
 	public class WordRepository(string connectionString) : IWordRepository
 	{
+		/// <inheritdoc/>
 		public async Task<List<WordDto>> GetAllAsync(int userId, int? dictionaryId = null)
 		{
 			try
@@ -30,6 +31,7 @@ namespace VocabularyTrainer.DataAccess.Repositories
 			}
 		}
 
+		/// <inheritdoc/>
 		public async Task AddAsync(AddWordRequest request)
 		{
 			await using var connection = new SqlConnection(connectionString);
@@ -37,8 +39,8 @@ namespace VocabularyTrainer.DataAccess.Repositories
 			await using var transaction = await connection.BeginTransactionAsync();
 			try
 			{
-				var insertedWordId = await connection.ExecuteScalarAsync<int>(WordSqlQueries.InsertWord, request.Word, transaction);
-				await connection.ExecuteAsync(WordSqlQueries.InsertUserWord, new EditWordRequest(insertedWordId, request.UserId, request.DictionaryId), transaction);
+				var insertedWordId = await connection.ExecuteScalarAsync<int>(WordSqlQueries.InsertWord, request, transaction);
+				await connection.ExecuteAsync(WordSqlQueries.InsertUserWord, new UserWordKey(insertedWordId, request.UserId, request.DictionaryId), transaction);
 				await transaction.CommitAsync();
 			}
 			catch (SqlException ex)
@@ -53,7 +55,8 @@ namespace VocabularyTrainer.DataAccess.Repositories
 			}
 		}
 
-		public async Task DeleteAsync(EditWordRequest request)
+		/// <inheritdoc/>
+		public async Task DeleteAsync(UserWordKey request)
 		{
 			await using var connection = new SqlConnection(connectionString);
 			await connection.OpenAsync();
@@ -80,6 +83,7 @@ namespace VocabularyTrainer.DataAccess.Repositories
 			}
 		}
 
+		/// <inheritdoc/>
 		public async Task UpdateWeightAsync(UpdateWordWeightRequest request)
 		{
 			try

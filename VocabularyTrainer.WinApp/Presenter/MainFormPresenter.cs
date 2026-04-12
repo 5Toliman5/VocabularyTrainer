@@ -7,6 +7,7 @@ using VocabularyTrainer.WinApp.View;
 
 namespace VocabularyTrainer.WinApp.Presenter
 {
+	/// <summary>Presenter that mediates between <see cref="IMainFormView"/> and the domain services.</summary>
 	public class MainFormPresenter : IDisposable
 	{
 		private readonly IMainFormView _view;
@@ -19,6 +20,7 @@ namespace VocabularyTrainer.WinApp.Presenter
 		private bool _translationWasShown = false;
 		private bool _isBusy = false;
 
+		/// <summary>Initializes the presenter and subscribes to all view events.</summary>
 		public MainFormPresenter(
 			IMainFormView view,
 			IUserService userService,
@@ -34,20 +36,7 @@ namespace VocabularyTrainer.WinApp.Presenter
 			SubscribeToEvents();
 		}
 
-		private void SubscribeToEvents()
-		{
-			_view.UserChanged += OnUserChanged;
-			_view.TrainingDictionaryChanged += OnTrainingDictionaryChanged;
-			_view.AddWordRequested += OnAddWordRequested;
-			_view.ShowNextWordRequested += OnShowNextWordRequested;
-			_view.ShowTranslationRequested += OnShowTranslationRequested;
-			_view.DeleteWordRequested += OnDeleteWordRequested;
-			_view.AddDictionaryRequested += OnAddDictionaryRequested;
-			_view.UpdateDictionaryRequested += OnUpdateDictionaryRequested;
-			_view.DeleteDictionaryRequested += OnDeleteDictionaryRequested;
-			_view.MyWordsPageEntered += OnMyWordsPageEntered;
-		}
-
+		/// <summary>Unsubscribes from all view events.</summary>
 		public void Dispose()
 		{
 			_view.UserChanged -= OnUserChanged;
@@ -60,6 +49,20 @@ namespace VocabularyTrainer.WinApp.Presenter
 			_view.UpdateDictionaryRequested -= OnUpdateDictionaryRequested;
 			_view.DeleteDictionaryRequested -= OnDeleteDictionaryRequested;
 			_view.MyWordsPageEntered -= OnMyWordsPageEntered;
+		}
+
+		private void SubscribeToEvents()
+		{
+			_view.UserChanged += OnUserChanged;
+			_view.TrainingDictionaryChanged += OnTrainingDictionaryChanged;
+			_view.AddWordRequested += OnAddWordRequested;
+			_view.ShowNextWordRequested += OnShowNextWordRequested;
+			_view.ShowTranslationRequested += OnShowTranslationRequested;
+			_view.DeleteWordRequested += OnDeleteWordRequested;
+			_view.AddDictionaryRequested += OnAddDictionaryRequested;
+			_view.UpdateDictionaryRequested += OnUpdateDictionaryRequested;
+			_view.DeleteDictionaryRequested += OnDeleteDictionaryRequested;
+			_view.MyWordsPageEntered += OnMyWordsPageEntered;
 		}
 
 		private async void OnUserChanged(object? sender, string userName)
@@ -160,7 +163,7 @@ namespace VocabularyTrainer.WinApp.Presenter
 					return;
 				}
 
-				await _dictionaryService.AddAsync(_user!.Id, name, _view.InputLanguageCode);
+				await _dictionaryService.AddAsync(new AddDictionaryRequest(_user!.Id, name, _view.InputLanguageCode));
 
 				var dicts = await _dictionaryService.GetAllAsync(_user!.Id);
 				_view.LoadDictionaries(dicts);
@@ -184,7 +187,8 @@ namespace VocabularyTrainer.WinApp.Presenter
 					return;
 				}
 
-				await _dictionaryService.UpdateAsync(dictionaryId.Value, name, _view.InputLanguageCode);
+				await _dictionaryService.UpdateAsync(
+					new UpdateDictionaryRequest(dictionaryId.Value, _user!.Id, name, _view.InputLanguageCode));
 
 				var dicts = await _dictionaryService.GetAllAsync(_user!.Id);
 				_view.LoadDictionaries(dicts);
@@ -207,7 +211,7 @@ namespace VocabularyTrainer.WinApp.Presenter
 					return;
 				}
 
-				await _dictionaryService.DeleteAsync(dictionaryId.Value);
+				await _dictionaryService.DeleteAsync(dictionaryId.Value, _user!.Id);
 
 				var updated = await _dictionaryService.GetAllAsync(_user!.Id);
 				_view.LoadDictionaries(updated);

@@ -1,4 +1,5 @@
 namespace VocabularyTrainer.Domain.Models
 {
-	public record UpdateDictionaryRequest(int DictionaryId, string Name, string? LanguageCode);
+	/// <summary>Request data for renaming or updating a user dictionary.</summary>
+	public record UpdateDictionaryRequest(int DictionaryId, int UserId, string Name, string? LanguageCode);
 }

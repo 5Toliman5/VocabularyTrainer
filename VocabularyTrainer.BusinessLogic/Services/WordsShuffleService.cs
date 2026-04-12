@@ -1,21 +1,20 @@
-﻿using Common.Extensions;
+using Common.Extensions;
 using VocabularyTrainer.Domain.Models;
+using VocabularyTrainer.Domain.Services;
 
 namespace VocabularyTrainer.BusinessLogic.Services
 {
-	public interface IWordsShuffleService
-	{
-		List<WordDto> Shuffle(List<WordDto> words);
-	}
-
+	/// <summary>Implements weight-aware word shuffling.</summary>
 	public class WordsShuffleService : IWordsShuffleService
 	{
+		/// <inheritdoc/>
 		public List<WordDto> Shuffle(List<WordDto> words)
 		{
 			if (words.IsNullOrEmpty())
 			{
 				return [];
 			}
+
 			var rng = new Random();
 
 			return words

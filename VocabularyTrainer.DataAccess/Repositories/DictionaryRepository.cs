@@ -7,8 +7,10 @@ using VocabularyTrainer.Domain.Repositories;
 
 namespace VocabularyTrainer.DataAccess.Repositories
 {
+	/// <summary>SQL Server implementation of <see cref="IDictionaryRepository"/> using Dapper.</summary>
 	public class DictionaryRepository(string connectionString) : IDictionaryRepository
 	{
+		/// <inheritdoc/>
 		public async Task<List<DictionaryDto>> GetAllAsync(int userId)
 		{
 			try
@@ -24,6 +26,7 @@ namespace VocabularyTrainer.DataAccess.Repositories
 			}
 		}
 
+		/// <inheritdoc/>
 		public async Task<int> AddAsync(AddDictionaryRequest request)
 		{
 			try
@@ -41,6 +44,7 @@ namespace VocabularyTrainer.DataAccess.Repositories
 			}
 		}
 
+		/// <inheritdoc/>
 		public async Task UpdateAsync(UpdateDictionaryRequest request)
 		{
 			try
@@ -58,12 +62,13 @@ namespace VocabularyTrainer.DataAccess.Repositories
 			}
 		}
 
-		public async Task DeleteAsync(int dictionaryId)
+		/// <inheritdoc/>
+		public async Task DeleteAsync(int dictionaryId, int userId)
 		{
 			try
 			{
 				await using var connection = new SqlConnection(connectionString);
-				await connection.ExecuteAsync(DictionarySqlQueries.Delete, new { DictionaryId = dictionaryId });
+				await connection.ExecuteAsync(DictionarySqlQueries.Delete, new { DictionaryId = dictionaryId, UserId = userId });
 			}
 			catch (SqlException ex)
 			{

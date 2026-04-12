@@ -60,6 +60,7 @@
   <ItemGroup>
     <Build Include="Users.sql" />
     <Build Include="Words.sql" />
+    <Build Include="Dictionaries.sql" />
     <Build Include="UserWords.sql" />
   </ItemGroup>
 </Project>

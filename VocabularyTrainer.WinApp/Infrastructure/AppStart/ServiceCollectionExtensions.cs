@@ -1,33 +1,20 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
-using VocabularyTrainer.BusinessLogic.Services;
-using VocabularyTrainer.DataAccess.Repositories;
-using VocabularyTrainer.Domain.Repositories;
-using VocabularyTrainer.Domain.Services;
+using VocabularyTrainer.BusinessLogic;
 
 namespace VocabularyTrainer.WinApp.Infrastructure.AppStart
 {
+	/// <summary>Extension methods for registering Vocabulary Trainer services with the DI container.</summary>
 	public static class ServiceCollectionExtensions
 	{
+		/// <summary>Registers all application services and configures Serilog rolling-file logging.</summary>
 		public static IServiceCollection AddVocabularyTrainerServices(
 			this IServiceCollection services, AppConfig config)
 		{
 			ConfigureLogging(services, config.LogsDirectory);
 
-			services.AddSingleton<IUserRepository>(_ => new UserRepository(config.ConnectionString));
-			services.AddSingleton<IWordRepository>(_ => new WordRepository(config.ConnectionString));
-			services.AddSingleton<IDictionaryRepository>(_ => new DictionaryRepository(config.ConnectionString));
-
-			services.AddSingleton<IUserService, UserService>();
-			services.AddSingleton<IWordsShuffleService, WordsShuffleService>();
-			services.AddSingleton<IDictionaryService, DictionaryService>();
-			services.AddSingleton<IWordTrainerService>(provider =>
-				new WordTrainerService(
-					config.MaxWordWeight,
-					provider.GetRequiredService<IWordRepository>(),
-					provider.GetRequiredService<IWordsShuffleService>())
-				);
+			services.AddVocabularyTrainer(config.ConnectionString, config.MaxWordWeight);
 
 			return services;
 		}

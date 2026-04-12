@@ -1,114 +1,131 @@
-using VocabularyTrainer.Domain.Entities;
+using Common.Extensions;
 using VocabularyTrainer.Domain.Models;
 using VocabularyTrainer.Domain.Repositories;
 using VocabularyTrainer.Domain.Services;
 
 namespace VocabularyTrainer.BusinessLogic.Services
 {
+	/// <summary>Implements word training session business logic.</summary>
 	public class WordTrainerService : IWordTrainerService
 	{
 		private readonly IWordRepository _repository;
 		private readonly IWordsShuffleService _wordsShuffleService;
-
-		private readonly List<WordDto> _words;
 		private readonly int _maxWeight;
 
-		private WordDto? _currentWord;
-		private UserModel? _currentUser;
-		private int? _currentDictionaryId;
+		private TrainingSession? _session;
+		private TrainingSession CurrentSession => _session ?? throw new InvalidOperationException("Current user is not set.");
 
+		/// <summary>Initializes a new instance with the specified weight cap, repository, and shuffle strategy.</summary>
 		public WordTrainerService(int maxWeight, IWordRepository repository, IWordsShuffleService wordsShuffleService)
 		{
 			_repository = repository;
-			_words = [];
 			_maxWeight = maxWeight;
 			_wordsShuffleService = wordsShuffleService;
 		}
 
+		/// <inheritdoc/>
 		public void SetUser(UserModel user)
 		{
-			_currentUser = user;
-			_currentDictionaryId = null;
-			_words.Clear();
-			_currentWord = null;
+			_session = new TrainingSession(user);
 		}
 
+		/// <inheritdoc/>
 		public void SetDictionary(int? dictionaryId)
 		{
-			if (_currentDictionaryId == dictionaryId) return;
-			_currentDictionaryId = dictionaryId;
-			_words.Clear();
-			_currentWord = null;
+			var session = CurrentSession;
+
+			if (session.DictionaryId == dictionaryId) return;
+
+			session.DictionaryId = dictionaryId;
+			session.Words.Clear();
+			session.CurrentWord = null;
 		}
 
-		public int GetWordsCount() => _words.Count;
+        /// <inheritdoc/>
+        public int GetWordsCount()
+        {
+            return CurrentSession.Words.Count;
+        }
 
-		public async Task LoadWordsAsync()
+        /// <inheritdoc/>
+        public async Task LoadWordsAsync()
 		{
-			var dbWords = await _repository.GetAllAsync(CurrentUserId, _currentDictionaryId);
+			var session = CurrentSession;
+			var dbWords = await _repository.GetAllAsync(session.User.Id, session.DictionaryId);
 			var shuffledWords = _wordsShuffleService.Shuffle(dbWords);
-			_words.AddRange(shuffledWords);
+			session.Words.Clear();
+			session.Words.AddRange(shuffledWords);
 		}
 
+		/// <inheritdoc/>
 		public WordDto? GetCurrentWord()
 		{
-			return _currentWord is null
+			var currentWord = CurrentSession.CurrentWord;
+			return currentWord is null
 				? null
-				: new WordDto(_currentWord.Value, _currentWord.Translation);
+				: new WordDto(currentWord.Value, currentWord.Translation);
 		}
 
+		/// <inheritdoc/>
 		public async Task<WordDto?> GetNewWordAsync()
 		{
-			if (_currentWord is not null) _words.Remove(_currentWord);
+			var session = CurrentSession;
 
-			if (_words.Count == 0) await LoadWordsAsync();
+			if (session.CurrentWord is not null) session.Words.Remove(session.CurrentWord);
 
-			if (_words.Count == 0) return null;
+			if (session.Words.IsNullOrEmpty()) await LoadWordsAsync();
 
-			_currentWord = _words[0];
+			if (session.Words.IsNullOrEmpty()) return null;
 
-			return _currentWord;
+			session.CurrentWord = session.Words[0];
+
+			return session.CurrentWord;
 		}
 
+		/// <inheritdoc/>
 		public async Task AddWordAsync(WordDto word, int dictionaryId)
 		{
-			if (_currentUser is null) throw new InvalidOperationException("Current user is not set.");
+			var session = CurrentSession;
 
-			var existingWord = GetExistingWord(word, dictionaryId);
+			var existingWord = GetExistingWord(session, word, dictionaryId);
 			if (existingWord is not null)
 			{
-				_words.Remove(existingWord);
-				await _repository.DeleteAsync(new EditWordRequest(existingWord.Id, CurrentUserId, existingWord.DictionaryId));
+				session.Words.Remove(existingWord);
+				await _repository.DeleteAsync(new UserWordKey(existingWord.Id, session.User.Id, existingWord.DictionaryId));
 			}
 
-			await _repository.AddAsync(new AddWordRequest(new Word(word.Value, word.Translation), CurrentUserId, dictionaryId));
+			await _repository.AddAsync(new AddWordRequest(word.Value, word.Translation, session.User.Id, dictionaryId));
 
-			if (_currentDictionaryId is null || _currentDictionaryId == dictionaryId)
-				_words.Clear();
+			if (session.DictionaryId is null || session.DictionaryId == dictionaryId)
+				session.Words.Clear();
 		}
 
+		/// <inheritdoc/>
 		public async Task UpdateCurrentWordAsync(UpdateWeightType updateWeightType)
 		{
-			var word = _currentWord;
+			var session = CurrentSession;
+			var word = session.CurrentWord;
 			if (!NeedToUpdateWordWeight(updateWeightType, word)) return;
 
-			await _repository.UpdateWeightAsync(new UpdateWordWeightRequest(word!.Id, CurrentUserId, word.DictionaryId, updateWeightType));
+			await _repository.UpdateWeightAsync(new UpdateWordWeightRequest(word!.Id, session.User.Id, word.DictionaryId, updateWeightType));
 		}
 
+		/// <inheritdoc/>
 		public async Task DeleteCurrentWordAsync()
 		{
-			if (_currentWord is null) return;
+			var session = CurrentSession;
+			if (session.CurrentWord is null) return;
 
-			_words.Remove(_currentWord);
+			session.Words.Remove(session.CurrentWord);
 
-			await _repository.DeleteAsync(new EditWordRequest(_currentWord.Id, CurrentUserId, _currentWord.DictionaryId));
+			await _repository.DeleteAsync(new UserWordKey(session.CurrentWord.Id, session.User.Id, session.CurrentWord.DictionaryId));
 
-			_currentWord = null;
+			session.CurrentWord = null;
 		}
 
-		private WordDto? GetExistingWord(WordDto newWord, int dictionaryId)
+		private static WordDto? GetExistingWord(TrainingSession session, WordDto newWord, int dictionaryId)
 		{
-			return _words.FirstOrDefault(x =>
+			return session.Words.FirstOrDefault(x =>
 				x.Value.Equals(newWord.Value, StringComparison.CurrentCultureIgnoreCase) &&
 				x.DictionaryId == dictionaryId);
 		}
@@ -124,7 +141,5 @@ namespace VocabularyTrainer.BusinessLogic.Services
 				_ => throw new ArgumentException($"{updateWeightType} is not valid")
 			};
 		}
-
-		private int CurrentUserId => _currentUser?.Id ?? throw new InvalidOperationException("Current user is not set.");
 	}
 }

@@ -4,8 +4,13 @@ using VocabularyTrainer.Domain.Services;
 
 namespace VocabularyTrainer.BusinessLogic.Services
 {
-    public class UserService(IUserRepository repository) : IUserService
+	/// <summary>Implements user lookup business logic.</summary>
+	public class UserService(IUserRepository repository) : IUserService
 	{
-		public Task<UserModel?> GetAsync(string userName) => repository.GetUserAsync(userName);
-	}
+        /// <inheritdoc/>
+        public Task<UserModel?> GetAsync(string userName)
+        {
+            return repository.GetUserAsync(userName);
+        }
+    }
 }
