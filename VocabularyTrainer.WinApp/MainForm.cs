@@ -5,14 +5,13 @@ using VocabularyTrainer.WinApp.Infrastructure.Validation;
 using VocabularyTrainer.WinApp.View;
 using TextBox = System.Windows.Forms.TextBox;
 
-namespace WinApp
+namespace VocabularyTrainer.WinApp
 {
 	/// <summary>Main application form; implements <see cref="IMainFormView"/> and wires UI controls to view events.</summary>
 	public partial class MainForm : Form, IMainFormView
 	{
 		private readonly CultureInfo[] _neutralCultures;
-		private List<DictionaryDto> _dictionaryList = [];
-		private bool _suppressDictionaryEvents = false;
+		private bool _suppressDictionaryEvents;
 
 		/// <summary>Initializes the form, populates the language combo box, and sets up control defaults.</summary>
 		public MainForm()
@@ -166,6 +165,7 @@ namespace WinApp
 		}
 
 		// --- Private UI helpers ---
+		/// <summary>Populates the language combo box with all neutral cultures sorted by English name and enables auto-complete.</summary>
 		private void InitializeLanguageComboBox()
 		{
 			foreach (var culture in _neutralCultures)
@@ -175,6 +175,7 @@ namespace WinApp
 			LanguageComboBox.AutoCompleteSource = AutoCompleteSource.ListItems;
 		}
 
+		/// <summary>Rebuilds the training dictionary combo box, prepending an "All" entry and restoring the previously selected dictionary.</summary>
 		private void PopulateTrainingComboBox(IReadOnlyList<DictionaryDto> dicts)
 		{
 			var previousId = SelectedTrainingDictionaryId;
@@ -199,6 +200,7 @@ namespace WinApp
 			DictionaryTrainingComboBox.SelectedIndex = targetIndex;
 		}
 
+		/// <summary>Rebuilds the word-adding dictionary combo box, restoring the previously selected dictionary and clearing any stale error.</summary>
 		private void PopulateAddingComboBox(IReadOnlyList<DictionaryDto> dicts)
 		{
 			var previousId = SelectedAddingDictionaryId;
@@ -225,6 +227,7 @@ namespace WinApp
 			AddWordsErrorProvider.SetError(DictionaryAddingComboBox, string.Empty);
 		}
 
+		/// <summary>Rebuilds the My Words list box, restoring the previously selected dictionary by ID.</summary>
 		private void PopulateMyWordsDictionaries(IReadOnlyList<DictionaryDto> dicts)
 		{
 			var previousId = SelectedMyWordsDictionaryId;
@@ -246,10 +249,12 @@ namespace WinApp
 			}
 		}
 
+		/// <summary>Gets the ID of the currently selected training dictionary, or <c>null</c> when "All" is selected.</summary>
 		private int? SelectedTrainingDictionaryId =>
 			DictionaryTrainingComboBox.SelectedItem is DictionaryComboItem item ? item.Id : null;
 
 		// --- Event handlers ---
+		/// <summary>Fires <see cref="UserChanged"/> when the Train tab is entered and a user name is already present.</summary>
 		private void TrainYourSelfPageEnter(object sender, EventArgs e)
 		{
 			var userName = CurrentUserTextBox.Text;
@@ -261,15 +266,18 @@ namespace WinApp
 			}
 		}
 
+		/// <summary>Raises <see cref="MyWordsPageEntered"/> when the My Words tab is activated.</summary>
 		private void MyWordsPage_Enter(object sender, EventArgs e) =>
 			MyWordsPageEntered?.Invoke(this, EventArgs.Empty);
 
+		/// <summary>Raises <see cref="TrainingDictionaryChanged"/> when the user selects a different training dictionary, suppressed during bulk list refresh.</summary>
 		private void DictionaryTrainingComboBox_SelectedIndexChanged(object sender, EventArgs e)
 		{
 			if (_suppressDictionaryEvents) return;
 			TrainingDictionaryChanged?.Invoke(this, SelectedTrainingDictionaryId);
 		}
 
+		/// <summary>Populates the dictionary name and language fields from the selected My Words dictionary, or clears them when nothing is selected.</summary>
 		private void DictionariesListBox_SelectedIndexChanged(object sender, EventArgs e)
 		{
 			if (DictionariesListBox.SelectedItem is not DictionaryDto selected)
@@ -292,20 +300,28 @@ namespace WinApp
 			}
 		}
 
+		/// <summary>Forwards the button click to <see cref="AddWordRequested"/>.</summary>
 		private void AddNewWord(object sender, EventArgs e) => AddWordRequested?.Invoke(sender, e);
 
+		/// <summary>Forwards the button click to <see cref="ShowNextWordRequested"/>.</summary>
 		private void ShowNextWord(object sender, EventArgs e) => ShowNextWordRequested?.Invoke(sender, e);
 
+		/// <summary>Forwards the button click to <see cref="ShowTranslationRequested"/>.</summary>
 		private void ShowTranslation(object sender, EventArgs e) => ShowTranslationRequested?.Invoke(sender, e);
 
+		/// <summary>Forwards the button click to <see cref="DeleteWordRequested"/>.</summary>
 		private void DeleteWord(object sender, EventArgs e) => DeleteWordRequested?.Invoke(sender, e);
 
+		/// <summary>Forwards the button click to <see cref="AddDictionaryRequested"/>.</summary>
 		private void AddDictionary(object sender, EventArgs e) => AddDictionaryRequested?.Invoke(sender, e);
 
+		/// <summary>Forwards the button click to <see cref="UpdateDictionaryRequested"/>.</summary>
 		private void UpdateDictionary(object sender, EventArgs e) => UpdateDictionaryRequested?.Invoke(sender, e);
 
+		/// <summary>Forwards the button click to <see cref="DeleteDictionaryRequested"/>.</summary>
 		private void DeleteDictionary(object sender, EventArgs e) => DeleteDictionaryRequested?.Invoke(sender, e);
 
+		/// <summary>Validates the changed text box against the allowed-input pattern and clears the field with an error message if invalid.</summary>
 		private void ValidateTextBox(object sender, EventArgs e)
 		{
 			var textBox = (TextBox)sender;
@@ -316,6 +332,7 @@ namespace WinApp
 			}
 		}
 
+		/// <summary>Moves focus between paired text boxes when the Up or Down arrow key is pressed.</summary>
 		private void TextBox_SwitchFocus(object? sender, KeyEventArgs e)
 		{
 			if (e.KeyCode is Keys.Up or Keys.Down)
@@ -329,6 +346,7 @@ namespace WinApp
 			}
 		}
 
+		/// <summary>Lightweight combo box item that pairs a nullable dictionary ID with its display label.</summary>
 		private sealed class DictionaryComboItem(int? id, string display)
 		{
 			public int? Id => id;

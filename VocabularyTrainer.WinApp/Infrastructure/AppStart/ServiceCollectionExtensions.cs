@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using VocabularyTrainer.WinApp.ApiClient;
 using VocabularyTrainer.BusinessLogic;
 
 namespace VocabularyTrainer.WinApp.Infrastructure.AppStart
@@ -14,11 +15,13 @@ namespace VocabularyTrainer.WinApp.Infrastructure.AppStart
 		{
 			ConfigureLogging(services, config.LogsDirectory);
 
-			services.AddVocabularyTrainer(config.ConnectionString, config.MaxWordWeight);
+			services.AddApiClient(config.ApiBaseUrl);
+			services.AddVocabularyTrainer();
 
 			return services;
 		}
 
+		/// <summary>Configures Serilog rolling-file logging and registers it as the <see cref="Microsoft.Extensions.Logging.ILoggerFactory"/> provider.</summary>
 		private static void ConfigureLogging(IServiceCollection services, string logsDirectory)
 		{
 			var logsPath = Path.IsPathRooted(logsDirectory)

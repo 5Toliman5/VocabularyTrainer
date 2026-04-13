@@ -11,16 +11,20 @@ namespace VocabularyTrainer.BusinessLogic
 	{
 		/// <summary>Registers all business logic services and data access repositories.</summary>
 		public static IServiceCollection AddVocabularyTrainer(
-			this IServiceCollection services, string connectionString, int maxWordWeight)
+			this IServiceCollection services, string connectionString)
 		{
 			services.AddDataAccess(connectionString);
+			return services.AddVocabularyTrainer();
+		}
 
+		/// <summary>Registers all business logic services. Repository implementations must be registered separately before calling this.</summary>
+		public static IServiceCollection AddVocabularyTrainer(this IServiceCollection services)
+		{
 			services.AddSingleton<IUserService, UserService>();
 			services.AddSingleton<IWordsShuffleService, WordsShuffleService>();
 			services.AddSingleton<IDictionaryService, DictionaryService>();
 			services.AddSingleton<IWordTrainerService>(provider =>
 				new WordTrainerService(
-					maxWordWeight,
 					provider.GetRequiredService<IWordRepository>(),
 					provider.GetRequiredService<IWordsShuffleService>()));
 

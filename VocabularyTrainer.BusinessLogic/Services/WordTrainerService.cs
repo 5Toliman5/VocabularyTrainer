@@ -10,16 +10,14 @@ namespace VocabularyTrainer.BusinessLogic.Services
 	{
 		private readonly IWordRepository _repository;
 		private readonly IWordsShuffleService _wordsShuffleService;
-		private readonly int _maxWeight;
 
 		private TrainingSession? _session;
 		private TrainingSession CurrentSession => _session ?? throw new InvalidOperationException("Current user is not set.");
 
-		/// <summary>Initializes a new instance with the specified weight cap, repository, and shuffle strategy.</summary>
-		public WordTrainerService(int maxWeight, IWordRepository repository, IWordsShuffleService wordsShuffleService)
+		/// <summary>Initializes a new instance with the specified repository and shuffle strategy.</summary>
+		public WordTrainerService(IWordRepository repository, IWordsShuffleService wordsShuffleService)
 		{
 			_repository = repository;
-			_maxWeight = maxWeight;
 			_wordsShuffleService = wordsShuffleService;
 		}
 
@@ -123,6 +121,7 @@ namespace VocabularyTrainer.BusinessLogic.Services
 			session.CurrentWord = null;
 		}
 
+		/// <summary>Returns the first word in the session that matches <paramref name="newWord"/>'s value (case-insensitive) in the given dictionary, or <c>null</c> if none exists.</summary>
 		private static WordDto? GetExistingWord(TrainingSession session, WordDto newWord, int dictionaryId)
 		{
 			return session.Words.FirstOrDefault(x =>
@@ -130,13 +129,14 @@ namespace VocabularyTrainer.BusinessLogic.Services
 				x.DictionaryId == dictionaryId);
 		}
 
+		/// <summary>Returns <c>true</c> when the weight update is applicable: increase is blocked at the cap, decrease is blocked at zero.</summary>
 		private bool NeedToUpdateWordWeight(UpdateWeightType updateWeightType, WordDto? word)
 		{
 			if (word is null) return false;
 
 			return updateWeightType switch
 			{
-				UpdateWeightType.Increase => word.Weight < _maxWeight,
+				UpdateWeightType.Increase => word.Weight < WordConstants.MaxWeight,
 				UpdateWeightType.Decrease => word.Weight > 0,
 				_ => throw new ArgumentException($"{updateWeightType} is not valid")
 			};

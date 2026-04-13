@@ -28,6 +28,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj" />
+    <ProjectReference Include="..\VocabularyTrainer.WinApp.ApiClient\VocabularyTrainer.WinApp.ApiClient.csproj" />
     <ProjectReference Include="..\VocabularyTrainer.BusinessLogic\VocabularyTrainer.BusinessLogic.csproj" />
     <ProjectReference Include="..\VocabularyTrainer.Domain\VocabularyTrainer.Domain.csproj" />
   </ItemGroup>

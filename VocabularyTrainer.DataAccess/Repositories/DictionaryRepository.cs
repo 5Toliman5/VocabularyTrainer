@@ -10,6 +10,9 @@ namespace VocabularyTrainer.DataAccess.Repositories
 	/// <summary>SQL Server implementation of <see cref="IDictionaryRepository"/> using Dapper.</summary>
 	public class DictionaryRepository(string connectionString) : IDictionaryRepository
 	{
+		private const int SqlUniqueConstraintViolation = 2627;
+		private const int SqlUniqueIndexViolation = 2601;
+
 		/// <inheritdoc/>
 		public async Task<List<DictionaryDto>> GetAllAsync(int userId)
 		{
@@ -34,7 +37,7 @@ namespace VocabularyTrainer.DataAccess.Repositories
 				await using var connection = new SqlConnection(connectionString);
 				return await connection.ExecuteScalarAsync<int>(DictionarySqlQueries.Insert, request);
 			}
-			catch (SqlException ex) when (ex.Number is 2627 or 2601)
+			catch (SqlException ex) when (ex.Number is SqlUniqueConstraintViolation or SqlUniqueIndexViolation)
 			{
 				throw new DuplicateNameException(ex);
 			}
@@ -52,7 +55,7 @@ namespace VocabularyTrainer.DataAccess.Repositories
 				await using var connection = new SqlConnection(connectionString);
 				await connection.ExecuteAsync(DictionarySqlQueries.Update, request);
 			}
-			catch (SqlException ex) when (ex.Number is 2627 or 2601)
+			catch (SqlException ex) when (ex.Number is SqlUniqueConstraintViolation or SqlUniqueIndexViolation)
 			{
 				throw new DuplicateNameException(ex);
 			}

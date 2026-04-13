@@ -2,7 +2,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using VocabularyTrainer.WinApp.Infrastructure.AppStart;
 using VocabularyTrainer.WinApp.Presenter;
-using WinApp;
 
 namespace VocabularyTrainer.WinApp
 {

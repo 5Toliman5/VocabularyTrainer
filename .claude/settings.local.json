@@ -4,7 +4,11 @@
       "Bash(dotnet build:*)",
       "Bash(dotnet add:*)",
       "Bash(grep:*)",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(dir \"C:\\\\Windows\\\\System32\\\\inetsrv\\\\aspnet*\")",
+      "Bash(dir \"C:\\\\Windows\\\\System32\\\\inetsrv\\\\ancm*\")",
+      "Read(//c/Program Files/IIS/**)",
+      "Read(//c/Program Files/dotnet/host/fxr/**)"
     ]
   }
 }

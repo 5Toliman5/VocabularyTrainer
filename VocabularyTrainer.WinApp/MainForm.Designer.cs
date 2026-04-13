@@ -1,4 +1,4 @@
-namespace WinApp
+namespace VocabularyTrainer.WinApp
 {
 	partial class MainForm
 	{

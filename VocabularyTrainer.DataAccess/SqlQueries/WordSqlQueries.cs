@@ -52,9 +52,11 @@ namespace VocabularyTrainer.DataAccess.SqlQueries
 			$"INSERT INTO UserWords(WordId, UserId, DictionaryId, Weight) " +
 			$"VALUES(@{nameof(UserWordKey.WordId)}, @{nameof(UserWordKey.UserId)}, @{nameof(UserWordKey.DictionaryId)}, 0)";
 
+		/// <summary>WHERE clause filtering by WordId and UserId.</summary>
 		private const string UserWordsWhereClause =
 			$" WHERE WordId = @{nameof(UserWordKey.WordId)} AND UserId = @{nameof(UserWordKey.UserId)}";
 
+		/// <summary>WHERE clause filtering by WordId, UserId, and DictionaryId.</summary>
 		private const string UserWordsDictionaryWhereClause =
 			UserWordsWhereClause + $" AND DictionaryId = @{nameof(UserWordKey.DictionaryId)}";
 

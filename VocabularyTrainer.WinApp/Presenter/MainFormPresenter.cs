@@ -17,8 +17,8 @@ namespace VocabularyTrainer.WinApp.Presenter
 		private readonly ILogger<MainFormPresenter> _logger;
 
 		private UserModel? _user;
-		private bool _translationWasShown = false;
-		private bool _isBusy = false;
+		private bool _translationWasShown;
+		private bool _isBusy;
 
 		/// <summary>Initializes the presenter and subscribes to all view events.</summary>
 		public MainFormPresenter(
@@ -51,6 +51,7 @@ namespace VocabularyTrainer.WinApp.Presenter
 			_view.MyWordsPageEntered -= OnMyWordsPageEntered;
 		}
 
+		/// <summary>Subscribes all presenter handler methods to the corresponding view events.</summary>
 		private void SubscribeToEvents()
 		{
 			_view.UserChanged += OnUserChanged;
@@ -65,6 +66,7 @@ namespace VocabularyTrainer.WinApp.Presenter
 			_view.MyWordsPageEntered += OnMyWordsPageEntered;
 		}
 
+		/// <summary>Loads the user, their dictionaries, and the first word when the user name changes.</summary>
 		private async void OnUserChanged(object? sender, string userName)
 		{
 			await ExecuteIfFreeAsync(async () =>
@@ -82,6 +84,7 @@ namespace VocabularyTrainer.WinApp.Presenter
 			});
 		}
 
+		/// <summary>Resets the current dictionary filter and loads the first word for the newly selected training dictionary.</summary>
 		private async void OnTrainingDictionaryChanged(object? sender, int? dictionaryId)
 		{
 			await ExecuteIfFreeAsync(async () =>
@@ -92,6 +95,7 @@ namespace VocabularyTrainer.WinApp.Presenter
 			});
 		}
 
+		/// <summary>Validates the word input and adds the word to the selected dictionary via the trainer service.</summary>
 		private async void OnAddWordRequested(object? sender, EventArgs e)
 		{
 			await ExecuteIfFreeAsync(async () =>
@@ -115,11 +119,13 @@ namespace VocabularyTrainer.WinApp.Presenter
 			});
 		}
 
+		/// <summary>Advances to the next word in the training session.</summary>
 		private async void OnShowNextWordRequested(object? sender, EventArgs e)
 		{
 			await ExecuteIfFreeAsync(ShowNextWordCoreAsync);
 		}
 
+		/// <summary>Reveals the translation of the current word, increases its weight, and updates the Next button caption.</summary>
 		private async void OnShowTranslationRequested(object? sender, EventArgs e)
 		{
 			await ExecuteIfFreeAsync(async () =>
@@ -138,6 +144,7 @@ namespace VocabularyTrainer.WinApp.Presenter
 			});
 		}
 
+		/// <summary>Deletes the current word and advances to the next one.</summary>
 		private async void OnDeleteWordRequested(object? sender, EventArgs e)
 		{
 			await ExecuteIfFreeAsync(async () =>
@@ -150,6 +157,7 @@ namespace VocabularyTrainer.WinApp.Presenter
 			});
 		}
 
+		/// <summary>Creates a new dictionary for the current user and refreshes the dictionary lists.</summary>
 		private async void OnAddDictionaryRequested(object? sender, EventArgs e)
 		{
 			await ExecuteIfFreeAsync(async () =>
@@ -171,6 +179,7 @@ namespace VocabularyTrainer.WinApp.Presenter
 			});
 		}
 
+		/// <summary>Renames (and optionally re-tags the language of) the selected dictionary and refreshes the lists.</summary>
 		private async void OnUpdateDictionaryRequested(object? sender, EventArgs e)
 		{
 			await ExecuteIfFreeAsync(async () =>
@@ -195,6 +204,7 @@ namespace VocabularyTrainer.WinApp.Presenter
 			});
 		}
 
+		/// <summary>Deletes the selected dictionary (guarded against deleting the last one) and refreshes the lists.</summary>
 		private async void OnDeleteDictionaryRequested(object? sender, EventArgs e)
 		{
 			await ExecuteIfFreeAsync(async () =>
@@ -221,6 +231,7 @@ namespace VocabularyTrainer.WinApp.Presenter
 			});
 		}
 
+		/// <summary>Ensures the user is loaded and refreshes the dictionary lists when the My Words tab is activated.</summary>
 		private async void OnMyWordsPageEntered(object? sender, EventArgs e)
 		{
 			await ExecuteIfFreeAsync(async () =>
@@ -237,6 +248,7 @@ namespace VocabularyTrainer.WinApp.Presenter
 			});
 		}
 
+		/// <summary>Runs <paramref name="action"/> only when no other operation is in progress, translating domain exceptions into user-facing error messages.</summary>
 		private async Task ExecuteIfFreeAsync(Func<Task> action)
 		{
 			if (_isBusy) return;
@@ -266,6 +278,7 @@ namespace VocabularyTrainer.WinApp.Presenter
 			}
 		}
 
+		/// <summary>Decreases weight for an unanswered word, fetches the next word, and updates all related view fields.</summary>
 		private async Task ShowNextWordCoreAsync()
 		{
 			_view.ClearShowWordOutput();
@@ -288,6 +301,7 @@ namespace VocabularyTrainer.WinApp.Presenter
 			_view.SetShowNextButtonText(Constants.DefaultShowNextButtonText);
 		}
 
+		/// <summary>Shows an error and returns <c>false</c> when no user is loaded; returns <c>true</c> otherwise.</summary>
 		private bool ValidateUser()
 		{
 			if (_user is null)

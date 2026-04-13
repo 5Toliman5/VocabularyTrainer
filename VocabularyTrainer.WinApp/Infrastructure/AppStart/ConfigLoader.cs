@@ -16,11 +16,8 @@ namespace VocabularyTrainer.WinApp.Infrastructure.AppStart
 
 			var config = configuration.Get<AppConfig>();
 
-			if (config is null || string.IsNullOrEmpty(config.ConnectionString))
-				throw new InvalidOperationException("ConnectionString is not configured in appsettings.json.");
-
-			if (config.MaxWordWeight <= 0)
-				throw new InvalidOperationException("MaxWordWeight is not configured in appsettings.json.");
+			if (config is null || string.IsNullOrEmpty(config.ApiBaseUrl))
+				throw new InvalidOperationException("ApiBaseUrl is not configured in appsettings.json.");
 
 			return config;
 		}
