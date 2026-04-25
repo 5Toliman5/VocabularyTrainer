@@ -1,19 +1,24 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using VocabularyTrainer.Api.Contract.Words;
+using VocabularyTrainer.Domain.Models;
 using VocabularyTrainer.Domain.Repositories;
+// Contract aliases — take priority over the Domain.Models namespace import for same-named types
+using AddWordRequest = VocabularyTrainer.Api.Contract.Words.AddWordRequest;
+using DeleteWordRequest = VocabularyTrainer.Api.Contract.Words.DeleteWordRequest;
+using UpdateWordWeightRequest = VocabularyTrainer.Api.Contract.Words.UpdateWordWeightRequest;
+using WordResponse = VocabularyTrainer.Api.Contract.Words.WordResponse;
+using WordPageItem = VocabularyTrainer.Api.Contract.Words.WordPageItem;
+// Domain aliases used inside method bodies when calling the mapper
 using DomainAddWordRequest = VocabularyTrainer.Domain.Models.AddWordRequest;
 using DomainUserWordKey = VocabularyTrainer.Domain.Models.UserWordKey;
 using DomainUpdateWeightRequest = VocabularyTrainer.Domain.Models.UpdateWordWeightRequest;
 
 namespace VocabularyTrainer.Api.Controllers
 {
-    /// <summary>Manages word entries for a user's dictionary.</summary>
     [ApiController]
     [Route("api/[controller]")]
     public class WordsController(IWordRepository repository, IMapper mapper) : ControllerBase
     {
-        /// <summary>Returns all words for the specified user, optionally filtered by dictionary.</summary>
         [HttpGet]
         public async Task<IEnumerable<WordResponse>> GetAll([FromQuery] int userId, [FromQuery] int? dictionaryId = null)
         {
@@ -21,7 +26,14 @@ namespace VocabularyTrainer.Api.Controllers
             return mapper.Map<IEnumerable<WordResponse>>(words);
         }
 
-        /// <summary>Adds a new word to a user's dictionary.</summary>
+        [HttpGet("paged")]
+        public async Task<PagedResult<WordPageItem>> GetPaged([FromQuery] GetWordsPagedRequest request)
+        {
+            var result = await repository.GetPagedAsync(request);
+            var items = mapper.Map<IReadOnlyList<WordPageItem>>(result.Items);
+            return new PagedResult<WordPageItem>(items, result.TotalCount, result.Page, result.PageSize);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] AddWordRequest request)
         {
@@ -29,7 +41,6 @@ namespace VocabularyTrainer.Api.Controllers
             return Created();
         }
 
-        /// <summary>Deletes the word identified by the composite key.</summary>
         [HttpDelete]
         public async Task<IActionResult> Delete([FromBody] DeleteWordRequest request)
         {
@@ -37,7 +48,6 @@ namespace VocabularyTrainer.Api.Controllers
             return NoContent();
         }
 
-        /// <summary>Updates the training weight of a word.</summary>
         [HttpPatch("weight")]
         public async Task<IActionResult> UpdateWeight([FromBody] UpdateWordWeightRequest request)
         {

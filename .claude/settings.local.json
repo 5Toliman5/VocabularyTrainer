@@ -8,7 +8,9 @@
       "Bash(dir \"C:\\\\Windows\\\\System32\\\\inetsrv\\\\aspnet*\")",
       "Bash(dir \"C:\\\\Windows\\\\System32\\\\inetsrv\\\\ancm*\")",
       "Read(//c/Program Files/IIS/**)",
-      "Read(//c/Program Files/dotnet/host/fxr/**)"
+      "Read(//c/Program Files/dotnet/host/fxr/**)",
+      "Bash(xargs wc *)",
+      "Bash(del *)"
     ]
   }
 }

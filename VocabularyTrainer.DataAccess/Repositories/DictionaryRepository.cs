@@ -7,13 +7,11 @@ using VocabularyTrainer.Domain.Repositories;
 
 namespace VocabularyTrainer.DataAccess.Repositories
 {
-	/// <summary>SQL Server implementation of <see cref="IDictionaryRepository"/> using Dapper.</summary>
 	public class DictionaryRepository(string connectionString) : IDictionaryRepository
 	{
 		private const int SqlUniqueConstraintViolation = 2627;
 		private const int SqlUniqueIndexViolation = 2601;
 
-		/// <inheritdoc/>
 		public async Task<List<DictionaryDto>> GetAllAsync(int userId)
 		{
 			try
@@ -29,7 +27,6 @@ namespace VocabularyTrainer.DataAccess.Repositories
 			}
 		}
 
-		/// <inheritdoc/>
 		public async Task<int> AddAsync(AddDictionaryRequest request)
 		{
 			try
@@ -47,7 +44,6 @@ namespace VocabularyTrainer.DataAccess.Repositories
 			}
 		}
 
-		/// <inheritdoc/>
 		public async Task UpdateAsync(UpdateDictionaryRequest request)
 		{
 			try
@@ -65,7 +61,6 @@ namespace VocabularyTrainer.DataAccess.Repositories
 			}
 		}
 
-		/// <inheritdoc/>
 		public async Task DeleteAsync(int dictionaryId, int userId)
 		{
 			try

@@ -8,17 +8,14 @@ using CUpdateDictionaryRequest = VocabularyTrainer.Api.Contract.Dictionaries.Upd
 
 namespace VocabularyTrainer.WinApp.ApiClient.Repositories
 {
-    /// <summary>Implements <see cref="IDictionaryRepository"/> by calling the VocabularyTrainer HTTP API.</summary>
     internal class DictionaryApiRepository(HttpClient httpClient, IMapper mapper) : IDictionaryRepository
     {
-        /// <inheritdoc/>
         public async Task<List<DictionaryDto>> GetAllAsync(int userId)
         {
             var response = await httpClient.GetFromJsonAsync<List<CDictionaryResponse>>($"api/dictionaries?userId={userId}");
             return mapper.Map<List<DictionaryDto>>(response);
         }
 
-        /// <inheritdoc/>
         public async Task<int> AddAsync(AddDictionaryRequest request)
         {
             var response = await httpClient.PostAsJsonAsync("api/dictionaries", mapper.Map<CAddDictionaryRequest>(request));
@@ -27,7 +24,6 @@ namespace VocabularyTrainer.WinApp.ApiClient.Repositories
             return created!.Id;
         }
 
-        /// <inheritdoc/>
         public async Task UpdateAsync(UpdateDictionaryRequest request)
         {
             var response = await httpClient.PutAsJsonAsync(
@@ -35,7 +31,6 @@ namespace VocabularyTrainer.WinApp.ApiClient.Repositories
             response.EnsureSuccessStatusCode();
         }
 
-        /// <inheritdoc/>
         public async Task DeleteAsync(int dictionaryId, int userId)
         {
             var response = await httpClient.DeleteAsync($"api/dictionaries/{dictionaryId}?userId={userId}");

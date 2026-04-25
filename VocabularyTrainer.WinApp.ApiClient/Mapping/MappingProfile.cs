@@ -1,6 +1,7 @@
 using AutoMapper;
 using VocabularyTrainer.Domain.Models;
 using CWordResponse = VocabularyTrainer.Api.Contract.Words.WordResponse;
+using CWordPageItem = VocabularyTrainer.Api.Contract.Words.WordPageItem;
 using CAddWordRequest = VocabularyTrainer.Api.Contract.Words.AddWordRequest;
 using CDeleteWordRequest = VocabularyTrainer.Api.Contract.Words.DeleteWordRequest;
 using CUpdateWeightRequest = VocabularyTrainer.Api.Contract.Words.UpdateWordWeightRequest;
@@ -12,19 +13,21 @@ using CUserResponse = VocabularyTrainer.Api.Contract.Users.UserResponse;
 
 namespace VocabularyTrainer.WinApp.ApiClient.Mapping
 {
-    /// <summary>AutoMapper profile that maps between API contract models and domain models for the HTTP client layer.</summary>
     public class MappingProfile : Profile
     {
-        /// <summary>Initializes all contract-to-domain and domain-to-contract mappings.</summary>
         public MappingProfile()
         {
-            // ── Contract response → Domain ──────────────────────────────────
             CreateMap<CWordResponse, WordDto>()
                 .ConstructUsing(r => new WordDto(r.Id, r.Value, r.Translation, r.Weight, r.DictionaryId, r.DictionaryName));
+
+            CreateMap<CWordPageItem, WordDto>()
+                .ConstructUsing(r =>
+                    new WordDto(r.Id, r.Value, r.Translation, r.Weight, r.DictionaryId, r.DictionaryName,
+                                r.LanguageCode, r.DateAdded, r.DateModified));
+
             CreateMap<CDictionaryResponse, DictionaryDto>();
             CreateMap<CUserResponse, UserModel>();
 
-            // ── Domain → Contract request ───────────────────────────────────
             CreateMap<UpdateWeightType, CWeightUpdateType>();
             CreateMap<AddWordRequest, CAddWordRequest>();
             CreateMap<UserWordKey, CDeleteWordRequest>();

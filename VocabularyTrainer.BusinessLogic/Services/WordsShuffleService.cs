@@ -4,10 +4,8 @@ using VocabularyTrainer.Domain.Services;
 
 namespace VocabularyTrainer.BusinessLogic.Services
 {
-	/// <summary>Implements weight-aware word shuffling.</summary>
 	public class WordsShuffleService : IWordsShuffleService
 	{
-		/// <inheritdoc/>
 		public List<WordDto> Shuffle(List<WordDto> words)
 		{
 			if (words.IsNullOrEmpty())

@@ -7,12 +7,10 @@ using DomainUpdateDictRequest = VocabularyTrainer.Domain.Models.UpdateDictionary
 
 namespace VocabularyTrainer.Api.Controllers
 {
-    /// <summary>Manages user dictionaries.</summary>
     [ApiController]
     [Route("api/[controller]")]
     public class DictionariesController(IDictionaryRepository repository, IMapper mapper) : ControllerBase
     {
-        /// <summary>Returns all dictionaries belonging to the specified user.</summary>
         [HttpGet]
         public async Task<IEnumerable<DictionaryResponse>> GetAll([FromQuery] int userId)
         {
@@ -20,7 +18,6 @@ namespace VocabularyTrainer.Api.Controllers
             return mapper.Map<IEnumerable<DictionaryResponse>>(dictionaries);
         }
 
-        /// <summary>Creates a new dictionary for a user.</summary>
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] AddDictionaryRequest request)
         {
@@ -29,7 +26,6 @@ namespace VocabularyTrainer.Api.Controllers
             return CreatedAtAction(nameof(GetAll), new { userId = request.UserId }, response);
         }
 
-        /// <summary>Updates an existing dictionary's name or language code.</summary>
         [HttpPut("{dictionaryId:int}")]
         public async Task<IActionResult> Update(int dictionaryId, [FromBody] UpdateDictionaryRequest request)
         {
@@ -39,7 +35,6 @@ namespace VocabularyTrainer.Api.Controllers
             return NoContent();
         }
 
-        /// <summary>Deletes a dictionary belonging to the specified user.</summary>
         [HttpDelete("{dictionaryId:int}")]
         public async Task<IActionResult> Delete(int dictionaryId, [FromQuery] int userId)
         {

@@ -6,10 +6,8 @@ using VocabularyTrainer.BusinessLogic;
 
 namespace VocabularyTrainer.WinApp.Infrastructure.AppStart
 {
-	/// <summary>Extension methods for registering Vocabulary Trainer services with the DI container.</summary>
 	public static class ServiceCollectionExtensions
 	{
-		/// <summary>Registers all application services and configures Serilog rolling-file logging.</summary>
 		public static IServiceCollection AddVocabularyTrainerServices(
 			this IServiceCollection services, AppConfig config)
 		{
@@ -21,7 +19,6 @@ namespace VocabularyTrainer.WinApp.Infrastructure.AppStart
 			return services;
 		}
 
-		/// <summary>Configures Serilog rolling-file logging and registers it as the <see cref="Microsoft.Extensions.Logging.ILoggerFactory"/> provider.</summary>
 		private static void ConfigureLogging(IServiceCollection services, string logsDirectory)
 		{
 			var logsPath = Path.IsPathRooted(logsDirectory)

@@ -5,7 +5,6 @@ using VocabularyTrainer.Domain.Services;
 
 namespace VocabularyTrainer.BusinessLogic.Services
 {
-	/// <summary>Implements word training session business logic.</summary>
 	public class WordTrainerService : IWordTrainerService
 	{
 		private readonly IWordRepository _repository;
@@ -14,20 +13,17 @@ namespace VocabularyTrainer.BusinessLogic.Services
 		private TrainingSession? _session;
 		private TrainingSession CurrentSession => _session ?? throw new InvalidOperationException("Current user is not set.");
 
-		/// <summary>Initializes a new instance with the specified repository and shuffle strategy.</summary>
 		public WordTrainerService(IWordRepository repository, IWordsShuffleService wordsShuffleService)
 		{
 			_repository = repository;
 			_wordsShuffleService = wordsShuffleService;
 		}
 
-		/// <inheritdoc/>
 		public void SetUser(UserModel user)
 		{
 			_session = new TrainingSession(user);
 		}
 
-		/// <inheritdoc/>
 		public void SetDictionary(int? dictionaryId)
 		{
 			var session = CurrentSession;
@@ -39,14 +35,12 @@ namespace VocabularyTrainer.BusinessLogic.Services
 			session.CurrentWord = null;
 		}
 
-        /// <inheritdoc/>
-        public int GetWordsCount()
-        {
-            return CurrentSession.Words.Count;
-        }
+		public int GetWordsCount()
+		{
+			return CurrentSession.Words.Count;
+		}
 
-        /// <inheritdoc/>
-        public async Task LoadWordsAsync()
+		public async Task LoadWordsAsync()
 		{
 			var session = CurrentSession;
 			var dbWords = await _repository.GetAllAsync(session.User.Id, session.DictionaryId);
@@ -55,7 +49,6 @@ namespace VocabularyTrainer.BusinessLogic.Services
 			session.Words.AddRange(shuffledWords);
 		}
 
-		/// <inheritdoc/>
 		public WordDto? GetCurrentWord()
 		{
 			var currentWord = CurrentSession.CurrentWord;
@@ -64,7 +57,6 @@ namespace VocabularyTrainer.BusinessLogic.Services
 				: new WordDto(currentWord.Value, currentWord.Translation);
 		}
 
-		/// <inheritdoc/>
 		public async Task<WordDto?> GetNewWordAsync()
 		{
 			var session = CurrentSession;
@@ -80,7 +72,6 @@ namespace VocabularyTrainer.BusinessLogic.Services
 			return session.CurrentWord;
 		}
 
-		/// <inheritdoc/>
 		public async Task AddWordAsync(WordDto word, int dictionaryId)
 		{
 			var session = CurrentSession;
@@ -98,7 +89,6 @@ namespace VocabularyTrainer.BusinessLogic.Services
 				session.Words.Clear();
 		}
 
-		/// <inheritdoc/>
 		public async Task UpdateCurrentWordAsync(UpdateWeightType updateWeightType)
 		{
 			var session = CurrentSession;
@@ -108,7 +98,6 @@ namespace VocabularyTrainer.BusinessLogic.Services
 			await _repository.UpdateWeightAsync(new UpdateWordWeightRequest(word!.Id, session.User.Id, word.DictionaryId, updateWeightType));
 		}
 
-		/// <inheritdoc/>
 		public async Task DeleteCurrentWordAsync()
 		{
 			var session = CurrentSession;
@@ -121,7 +110,6 @@ namespace VocabularyTrainer.BusinessLogic.Services
 			session.CurrentWord = null;
 		}
 
-		/// <summary>Returns the first word in the session that matches <paramref name="newWord"/>'s value (case-insensitive) in the given dictionary, or <c>null</c> if none exists.</summary>
 		private static WordDto? GetExistingWord(TrainingSession session, WordDto newWord, int dictionaryId)
 		{
 			return session.Words.FirstOrDefault(x =>
@@ -129,7 +117,7 @@ namespace VocabularyTrainer.BusinessLogic.Services
 				x.DictionaryId == dictionaryId);
 		}
 
-		/// <summary>Returns <c>true</c> when the weight update is applicable: increase is blocked at the cap, decrease is blocked at zero.</summary>
+		// increase is capped at MaxWeight, decrease is floored at 0 — skip the DB call when already at the boundary
 		private bool NeedToUpdateWordWeight(UpdateWeightType updateWeightType, WordDto? word)
 		{
 			if (word is null) return false;

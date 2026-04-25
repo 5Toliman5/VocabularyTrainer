@@ -49,7 +49,7 @@ namespace VocabularyTrainer.WinApp
             WordToLearnLabel = new Label();
             InputTranslationTextBox = new TextBox();
             InputWordTextBox = new TextBox();
-            MyWordsPage = new TabPage();
+            MyDictionariesPage = new TabPage();
             WordCountLabel = new Label();
             DictionariesListBox = new ListBox();
             DictNameLabel = new Label();
@@ -59,6 +59,20 @@ namespace VocabularyTrainer.WinApp
             AddDictionaryButton = new Button();
             UpdateDictionaryButton = new Button();
             DeleteDictionaryButton = new Button();
+            MyWordsPage = new TabPage();
+            MyWordsDictionaryCombo = new ComboBox();
+            MyWordsLanguageCombo = new ComboBox();
+            MyWordsSearchBox = new TextBox();
+            MyWordsApplyButton = new Button();
+            MyWordsFromLabel = new Label();
+            MyWordsDateFromPicker = new DateTimePicker();
+            MyWordsToLabel = new Label();
+            MyWordsDateToPicker = new DateTimePicker();
+            MyWordsGrid = new DataGridView();
+            MyWordsPrevButton = new Button();
+            MyWordsPageLabel = new Label();
+            MyWordsNextButton = new Button();
+            MyWordsDeleteButton = new Button();
             UserPage = new TabPage();
             textBox1 = new TextBox();
             CurrentUserTextBox = new TextBox();
@@ -67,7 +81,9 @@ namespace VocabularyTrainer.WinApp
             MainTabControl.SuspendLayout();
             TrainYourselfPage.SuspendLayout();
             AddNewWordsPage.SuspendLayout();
+            MyDictionariesPage.SuspendLayout();
             MyWordsPage.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)MyWordsGrid).BeginInit();
             UserPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)AddWordsErrorProvider).BeginInit();
             SuspendLayout();
@@ -76,12 +92,13 @@ namespace VocabularyTrainer.WinApp
             // 
             MainTabControl.Controls.Add(TrainYourselfPage);
             MainTabControl.Controls.Add(AddNewWordsPage);
+            MainTabControl.Controls.Add(MyDictionariesPage);
             MainTabControl.Controls.Add(MyWordsPage);
             MainTabControl.Controls.Add(UserPage);
             MainTabControl.Location = new Point(2, 3);
             MainTabControl.Name = "MainTabControl";
             MainTabControl.SelectedIndex = 0;
-            MainTabControl.Size = new Size(799, 423);
+            MainTabControl.Size = new Size(920, 532);
             MainTabControl.TabIndex = 0;
             // 
             // TrainYourselfPage
@@ -99,7 +116,7 @@ namespace VocabularyTrainer.WinApp
             TrainYourselfPage.Location = new Point(4, 42);
             TrainYourselfPage.Name = "TrainYourselfPage";
             TrainYourselfPage.Padding = new Padding(3);
-            TrainYourselfPage.Size = new Size(791, 377);
+            TrainYourselfPage.Size = new Size(912, 486);
             TrainYourselfPage.TabIndex = 0;
             TrainYourselfPage.Text = "Train yourself";
             TrainYourselfPage.Enter += TrainYourSelfPageEnter;
@@ -108,7 +125,7 @@ namespace VocabularyTrainer.WinApp
             // 
             DictionaryOfWordLabel.Font = new Font("Comic Sans MS", 9F, FontStyle.Italic);
             DictionaryOfWordLabel.ForeColor = Color.Gray;
-            DictionaryOfWordLabel.Location = new Point(101, 142);
+            DictionaryOfWordLabel.Location = new Point(145, 193);
             DictionaryOfWordLabel.Name = "DictionaryOfWordLabel";
             DictionaryOfWordLabel.Size = new Size(609, 20);
             DictionaryOfWordLabel.TabIndex = 12;
@@ -118,7 +135,7 @@ namespace VocabularyTrainer.WinApp
             // 
             DictionaryTrainingLabel.AutoSize = true;
             DictionaryTrainingLabel.ForeColor = Color.Black;
-            DictionaryTrainingLabel.Location = new Point(6, 17);
+            DictionaryTrainingLabel.Location = new Point(9, 31);
             DictionaryTrainingLabel.Name = "DictionaryTrainingLabel";
             DictionaryTrainingLabel.Size = new Size(130, 33);
             DictionaryTrainingLabel.TabIndex = 10;
@@ -128,7 +145,7 @@ namespace VocabularyTrainer.WinApp
             // 
             DictionaryTrainingComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
             DictionaryTrainingComboBox.ForeColor = Color.Black;
-            DictionaryTrainingComboBox.Location = new Point(145, 12);
+            DictionaryTrainingComboBox.Location = new Point(146, 31);
             DictionaryTrainingComboBox.Name = "DictionaryTrainingComboBox";
             DictionaryTrainingComboBox.Size = new Size(290, 41);
             DictionaryTrainingComboBox.TabIndex = 11;
@@ -136,7 +153,7 @@ namespace VocabularyTrainer.WinApp
             // 
             // DeleteWordButton
             // 
-            DeleteWordButton.Location = new Point(314, 306);
+            DeleteWordButton.Location = new Point(358, 357);
             DeleteWordButton.Name = "DeleteWordButton";
             DeleteWordButton.Size = new Size(189, 42);
             DeleteWordButton.TabIndex = 4;
@@ -148,7 +165,7 @@ namespace VocabularyTrainer.WinApp
             // 
             DisplayTranslationTextBox.BackColor = SystemColors.Control;
             DisplayTranslationTextBox.Font = new Font("Comic Sans MS", 20.25F);
-            DisplayTranslationTextBox.Location = new Point(101, 166);
+            DisplayTranslationTextBox.Location = new Point(145, 217);
             DisplayTranslationTextBox.Name = "DisplayTranslationTextBox";
             DisplayTranslationTextBox.ReadOnly = true;
             DisplayTranslationTextBox.Size = new Size(609, 55);
@@ -158,7 +175,7 @@ namespace VocabularyTrainer.WinApp
             // 
             // ShowNextButton
             // 
-            ShowNextButton.Location = new Point(435, 233);
+            ShowNextButton.Location = new Point(479, 284);
             ShowNextButton.Name = "ShowNextButton";
             ShowNextButton.Size = new Size(275, 42);
             ShowNextButton.TabIndex = 2;
@@ -168,7 +185,7 @@ namespace VocabularyTrainer.WinApp
             // 
             // ShowTranslationButton
             // 
-            ShowTranslationButton.Location = new Point(101, 233);
+            ShowTranslationButton.Location = new Point(145, 284);
             ShowTranslationButton.Name = "ShowTranslationButton";
             ShowTranslationButton.Size = new Size(275, 42);
             ShowTranslationButton.TabIndex = 1;
@@ -179,7 +196,7 @@ namespace VocabularyTrainer.WinApp
             // DisplayWordTextBox
             // 
             DisplayWordTextBox.Font = new Font("Comic Sans MS", 20.25F);
-            DisplayWordTextBox.Location = new Point(101, 83);
+            DisplayWordTextBox.Location = new Point(146, 135);
             DisplayWordTextBox.Name = "DisplayWordTextBox";
             DisplayWordTextBox.ReadOnly = true;
             DisplayWordTextBox.Size = new Size(609, 55);
@@ -202,7 +219,7 @@ namespace VocabularyTrainer.WinApp
             AddNewWordsPage.Location = new Point(4, 29);
             AddNewWordsPage.Name = "AddNewWordsPage";
             AddNewWordsPage.Padding = new Padding(3);
-            AddNewWordsPage.Size = new Size(791, 390);
+            AddNewWordsPage.Size = new Size(912, 499);
             AddNewWordsPage.TabIndex = 1;
             AddNewWordsPage.Text = "Add new words";
             // 
@@ -229,9 +246,9 @@ namespace VocabularyTrainer.WinApp
             // 
             AddDataButton.BackColor = Color.Transparent;
             AddDataButton.ForeColor = Color.Black;
-            AddDataButton.Location = new Point(38, 283);
+            AddDataButton.Location = new Point(204, 223);
             AddDataButton.Name = "AddDataButton";
-            AddDataButton.Size = new Size(723, 54);
+            AddDataButton.Size = new Size(557, 54);
             AddDataButton.TabIndex = 7;
             AddDataButton.Text = "Add the data!";
             AddDataButton.UseVisualStyleBackColor = false;
@@ -249,7 +266,7 @@ namespace VocabularyTrainer.WinApp
             // TranslationLabel
             // 
             TranslationLabel.AutoSize = true;
-            TranslationLabel.Location = new Point(52, 165);
+            TranslationLabel.Location = new Point(44, 170);
             TranslationLabel.Name = "TranslationLabel";
             TranslationLabel.Size = new Size(141, 33);
             TranslationLabel.TabIndex = 4;
@@ -258,7 +275,7 @@ namespace VocabularyTrainer.WinApp
             // WordToLearnLabel
             // 
             WordToLearnLabel.AutoSize = true;
-            WordToLearnLabel.Location = new Point(27, 112);
+            WordToLearnLabel.Location = new Point(14, 117);
             WordToLearnLabel.Name = "WordToLearnLabel";
             WordToLearnLabel.Size = new Size(171, 33);
             WordToLearnLabel.TabIndex = 3;
@@ -284,26 +301,26 @@ namespace VocabularyTrainer.WinApp
             InputWordTextBox.TextChanged += ValidateTextBox;
             InputWordTextBox.KeyDown += TextBox_SwitchFocus;
             // 
-            // MyWordsPage
+            // MyDictionariesPage
             // 
-            MyWordsPage.BackColor = Color.Transparent;
-            MyWordsPage.Controls.Add(WordCountLabel);
-            MyWordsPage.Controls.Add(DictionariesListBox);
-            MyWordsPage.Controls.Add(DictNameLabel);
-            MyWordsPage.Controls.Add(DictionaryNameInputTextBox);
-            MyWordsPage.Controls.Add(DictLanguageLabel);
-            MyWordsPage.Controls.Add(LanguageComboBox);
-            MyWordsPage.Controls.Add(AddDictionaryButton);
-            MyWordsPage.Controls.Add(UpdateDictionaryButton);
-            MyWordsPage.Controls.Add(DeleteDictionaryButton);
-            MyWordsPage.ForeColor = Color.Black;
-            MyWordsPage.Location = new Point(4, 42);
-            MyWordsPage.Name = "MyWordsPage";
-            MyWordsPage.Padding = new Padding(3);
-            MyWordsPage.Size = new Size(791, 377);
-            MyWordsPage.TabIndex = 2;
-            MyWordsPage.Text = "My dictionaries";
-            MyWordsPage.Enter += MyWordsPage_Enter;
+            MyDictionariesPage.BackColor = Color.Transparent;
+            MyDictionariesPage.Controls.Add(WordCountLabel);
+            MyDictionariesPage.Controls.Add(DictionariesListBox);
+            MyDictionariesPage.Controls.Add(DictNameLabel);
+            MyDictionariesPage.Controls.Add(DictionaryNameInputTextBox);
+            MyDictionariesPage.Controls.Add(DictLanguageLabel);
+            MyDictionariesPage.Controls.Add(LanguageComboBox);
+            MyDictionariesPage.Controls.Add(AddDictionaryButton);
+            MyDictionariesPage.Controls.Add(UpdateDictionaryButton);
+            MyDictionariesPage.Controls.Add(DeleteDictionaryButton);
+            MyDictionariesPage.ForeColor = Color.Black;
+            MyDictionariesPage.Location = new Point(4, 29);
+            MyDictionariesPage.Name = "MyDictionariesPage";
+            MyDictionariesPage.Padding = new Padding(3);
+            MyDictionariesPage.Size = new Size(912, 499);
+            MyDictionariesPage.TabIndex = 2;
+            MyDictionariesPage.Text = "My dictionaries";
+            MyDictionariesPage.Enter += MyDictionariesPage_Enter;
             // 
             // WordCountLabel
             // 
@@ -318,7 +335,6 @@ namespace VocabularyTrainer.WinApp
             // DictionariesListBox
             // 
             DictionariesListBox.ForeColor = Color.Black;
-            DictionariesListBox.ItemHeight = 33;
             DictionariesListBox.Location = new Point(6, 10);
             DictionariesListBox.Name = "DictionariesListBox";
             DictionariesListBox.Size = new Size(266, 136);
@@ -394,6 +410,167 @@ namespace VocabularyTrainer.WinApp
             DeleteDictionaryButton.UseVisualStyleBackColor = true;
             DeleteDictionaryButton.Click += DeleteDictionary;
             // 
+            // MyWordsPage
+            // 
+            MyWordsPage.BackColor = Color.Transparent;
+            MyWordsPage.Controls.Add(MyWordsDictionaryCombo);
+            MyWordsPage.Controls.Add(MyWordsLanguageCombo);
+            MyWordsPage.Controls.Add(MyWordsSearchBox);
+            MyWordsPage.Controls.Add(MyWordsApplyButton);
+            MyWordsPage.Controls.Add(MyWordsFromLabel);
+            MyWordsPage.Controls.Add(MyWordsDateFromPicker);
+            MyWordsPage.Controls.Add(MyWordsToLabel);
+            MyWordsPage.Controls.Add(MyWordsDateToPicker);
+            MyWordsPage.Controls.Add(MyWordsGrid);
+            MyWordsPage.Controls.Add(MyWordsPrevButton);
+            MyWordsPage.Controls.Add(MyWordsPageLabel);
+            MyWordsPage.Controls.Add(MyWordsNextButton);
+            MyWordsPage.Controls.Add(MyWordsDeleteButton);
+            MyWordsPage.ForeColor = Color.Black;
+            MyWordsPage.Location = new Point(4, 29);
+            MyWordsPage.Name = "MyWordsPage";
+            MyWordsPage.Padding = new Padding(3);
+            MyWordsPage.Size = new Size(912, 499);
+            MyWordsPage.TabIndex = 3;
+            MyWordsPage.Text = "My words";
+            MyWordsPage.Enter += MyWordsPage_Enter;
+            // 
+            // MyWordsDictionaryCombo
+            // 
+            MyWordsDictionaryCombo.DropDownStyle = ComboBoxStyle.DropDownList;
+            MyWordsDictionaryCombo.ForeColor = Color.Black;
+            MyWordsDictionaryCombo.Location = new Point(8, 8);
+            MyWordsDictionaryCombo.Name = "MyWordsDictionaryCombo";
+            MyWordsDictionaryCombo.Size = new Size(290, 41);
+            MyWordsDictionaryCombo.TabIndex = 0;
+            // 
+            // MyWordsLanguageCombo
+            // 
+            MyWordsLanguageCombo.DropDownStyle = ComboBoxStyle.DropDownList;
+            MyWordsLanguageCombo.ForeColor = Color.Black;
+            MyWordsLanguageCombo.Location = new Point(304, 8);
+            MyWordsLanguageCombo.Name = "MyWordsLanguageCombo";
+            MyWordsLanguageCombo.Size = new Size(115, 41);
+            MyWordsLanguageCombo.TabIndex = 1;
+            // 
+            // MyWordsSearchBox
+            // 
+            MyWordsSearchBox.Font = new Font("Comic Sans MS", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            MyWordsSearchBox.ForeColor = Color.Black;
+            MyWordsSearchBox.Location = new Point(509, 9);
+            MyWordsSearchBox.Name = "MyWordsSearchBox";
+            MyWordsSearchBox.PlaceholderText = "Search...";
+            MyWordsSearchBox.Size = new Size(284, 35);
+            MyWordsSearchBox.TabIndex = 2;
+            // 
+            // MyWordsApplyButton
+            // 
+            MyWordsApplyButton.Font = new Font("Comic Sans MS", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            MyWordsApplyButton.ForeColor = Color.Black;
+            MyWordsApplyButton.Location = new Point(799, 6);
+            MyWordsApplyButton.Name = "MyWordsApplyButton";
+            MyWordsApplyButton.Size = new Size(105, 41);
+            MyWordsApplyButton.TabIndex = 3;
+            MyWordsApplyButton.Text = "Search";
+            MyWordsApplyButton.UseVisualStyleBackColor = true;
+            MyWordsApplyButton.Click += MyWordsApplyButton_Click;
+            // 
+            // MyWordsFromLabel
+            // 
+            MyWordsFromLabel.AutoSize = true;
+            MyWordsFromLabel.Font = new Font("Comic Sans MS", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            MyWordsFromLabel.ForeColor = Color.Black;
+            MyWordsFromLabel.Location = new Point(8, 62);
+            MyWordsFromLabel.Name = "MyWordsFromLabel";
+            MyWordsFromLabel.Size = new Size(60, 28);
+            MyWordsFromLabel.TabIndex = 4;
+            MyWordsFromLabel.Text = "From";
+            // 
+            // MyWordsDateFromPicker
+            // 
+            MyWordsDateFromPicker.Checked = false;
+            MyWordsDateFromPicker.Font = new Font("Comic Sans MS", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            MyWordsDateFromPicker.Location = new Point(87, 65);
+            MyWordsDateFromPicker.Name = "MyWordsDateFromPicker";
+            MyWordsDateFromPicker.ShowCheckBox = true;
+            MyWordsDateFromPicker.Size = new Size(155, 31);
+            MyWordsDateFromPicker.TabIndex = 5;
+            // 
+            // MyWordsToLabel
+            // 
+            MyWordsToLabel.AutoSize = true;
+            MyWordsToLabel.Font = new Font("Comic Sans MS", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            MyWordsToLabel.ForeColor = Color.Black;
+            MyWordsToLabel.Location = new Point(261, 62);
+            MyWordsToLabel.Name = "MyWordsToLabel";
+            MyWordsToLabel.Size = new Size(37, 28);
+            MyWordsToLabel.TabIndex = 6;
+            MyWordsToLabel.Text = "To";
+            // 
+            // MyWordsDateToPicker
+            // 
+            MyWordsDateToPicker.Checked = false;
+            MyWordsDateToPicker.Font = new Font("Comic Sans MS", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            MyWordsDateToPicker.Location = new Point(309, 62);
+            MyWordsDateToPicker.Name = "MyWordsDateToPicker";
+            MyWordsDateToPicker.ShowCheckBox = true;
+            MyWordsDateToPicker.Size = new Size(155, 31);
+            MyWordsDateToPicker.TabIndex = 7;
+            // 
+            // MyWordsGrid
+            // 
+            MyWordsGrid.ColumnHeadersHeight = 29;
+            MyWordsGrid.Location = new Point(8, 106);
+            MyWordsGrid.Name = "MyWordsGrid";
+            MyWordsGrid.RowHeadersWidth = 51;
+            MyWordsGrid.Size = new Size(896, 291);
+            MyWordsGrid.TabIndex = 8;
+            // 
+            // MyWordsPrevButton
+            // 
+            MyWordsPrevButton.Enabled = false;
+            MyWordsPrevButton.ForeColor = Color.Black;
+            MyWordsPrevButton.Location = new Point(8, 425);
+            MyWordsPrevButton.Name = "MyWordsPrevButton";
+            MyWordsPrevButton.Size = new Size(70, 53);
+            MyWordsPrevButton.TabIndex = 9;
+            MyWordsPrevButton.Text = "< Prev";
+            MyWordsPrevButton.UseVisualStyleBackColor = true;
+            MyWordsPrevButton.Click += MyWordsPrevButton_Click;
+            // 
+            // MyWordsPageLabel
+            // 
+            MyWordsPageLabel.AutoSize = true;
+            MyWordsPageLabel.ForeColor = Color.Black;
+            MyWordsPageLabel.Location = new Point(87, 435);
+            MyWordsPageLabel.Name = "MyWordsPageLabel";
+            MyWordsPageLabel.Size = new Size(134, 33);
+            MyWordsPageLabel.TabIndex = 10;
+            MyWordsPageLabel.Text = "Page 1 of 1";
+            // 
+            // MyWordsNextButton
+            // 
+            MyWordsNextButton.Enabled = false;
+            MyWordsNextButton.ForeColor = Color.Black;
+            MyWordsNextButton.Location = new Point(394, 422);
+            MyWordsNextButton.Name = "MyWordsNextButton";
+            MyWordsNextButton.Size = new Size(70, 58);
+            MyWordsNextButton.TabIndex = 11;
+            MyWordsNextButton.Text = ">";
+            MyWordsNextButton.UseVisualStyleBackColor = true;
+            MyWordsNextButton.Click += MyWordsNextButton_Click;
+            // 
+            // MyWordsDeleteButton
+            // 
+            MyWordsDeleteButton.ForeColor = Color.Black;
+            MyWordsDeleteButton.Location = new Point(701, 418);
+            MyWordsDeleteButton.Name = "MyWordsDeleteButton";
+            MyWordsDeleteButton.Size = new Size(203, 58);
+            MyWordsDeleteButton.TabIndex = 12;
+            MyWordsDeleteButton.Text = "Delete selected";
+            MyWordsDeleteButton.UseVisualStyleBackColor = true;
+            MyWordsDeleteButton.Click += MyWordsDeleteButton_Click;
+            // 
             // UserPage
             // 
             UserPage.BackColor = Color.Transparent;
@@ -401,11 +578,11 @@ namespace VocabularyTrainer.WinApp
             UserPage.Controls.Add(CurrentUserTextBox);
             UserPage.Controls.Add(CurrentUserLabel);
             UserPage.ForeColor = Color.Black;
-            UserPage.Location = new Point(4, 42);
+            UserPage.Location = new Point(4, 29);
             UserPage.Name = "UserPage";
             UserPage.Padding = new Padding(3);
-            UserPage.Size = new Size(791, 377);
-            UserPage.TabIndex = 3;
+            UserPage.Size = new Size(912, 499);
+            UserPage.TabIndex = 4;
             UserPage.Text = "Select user";
             // 
             // textBox1
@@ -447,15 +624,15 @@ namespace VocabularyTrainer.WinApp
             AutoScaleDimensions = new SizeF(15F, 33F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.White;
-            ClientSize = new Size(802, 413);
+            ClientSize = new Size(922, 533);
             Controls.Add(MainTabControl);
             Font = new Font("Comic Sans MS", 14.25F);
             ForeColor = Color.White;
             Icon = (Icon)resources.GetObject("$this.Icon");
             Location = new Point(800, 1300);
             Margin = new Padding(5, 6, 5, 6);
-            MaximumSize = new Size(820, 460);
-            MinimumSize = new Size(820, 460);
+            MaximumSize = new Size(940, 580);
+            MinimumSize = new Size(940, 580);
             Name = "MainForm";
             Text = "VocabularyTrainer";
             MainTabControl.ResumeLayout(false);
@@ -463,8 +640,11 @@ namespace VocabularyTrainer.WinApp
             TrainYourselfPage.PerformLayout();
             AddNewWordsPage.ResumeLayout(false);
             AddNewWordsPage.PerformLayout();
+            MyDictionariesPage.ResumeLayout(false);
+            MyDictionariesPage.PerformLayout();
             MyWordsPage.ResumeLayout(false);
             MyWordsPage.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)MyWordsGrid).EndInit();
             UserPage.ResumeLayout(false);
             UserPage.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)AddWordsErrorProvider).EndInit();
@@ -476,6 +656,7 @@ namespace VocabularyTrainer.WinApp
         private TabControl MainTabControl;
 		private TabPage TrainYourselfPage;
 		private TabPage AddNewWordsPage;
+		private TabPage MyDictionariesPage;
 		private TabPage MyWordsPage;
 		private TabPage UserPage;
 		// Train yourself
@@ -506,6 +687,20 @@ namespace VocabularyTrainer.WinApp
 		private Button AddDictionaryButton;
 		private Button UpdateDictionaryButton;
 		private Button DeleteDictionaryButton;
+		// My words browser
+		private ComboBox MyWordsDictionaryCombo;
+		private ComboBox MyWordsLanguageCombo;
+		private TextBox MyWordsSearchBox;
+		private Button MyWordsApplyButton;
+		private Label MyWordsFromLabel;
+		private DateTimePicker MyWordsDateFromPicker;
+		private Label MyWordsToLabel;
+		private DateTimePicker MyWordsDateToPicker;
+		private DataGridView MyWordsGrid;
+		private Button MyWordsPrevButton;
+		private Label MyWordsPageLabel;
+		private Button MyWordsNextButton;
+		private Button MyWordsDeleteButton;
 		// User page
 		private Label CurrentUserLabel;
 		private TextBox CurrentUserTextBox;
