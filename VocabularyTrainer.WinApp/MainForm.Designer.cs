@@ -73,6 +73,7 @@ namespace VocabularyTrainer.WinApp
             MyWordsPageLabel = new Label();
             MyWordsNextButton = new Button();
             MyWordsDeleteButton = new Button();
+            MyWordsResetButton = new Button();
             UserPage = new TabPage();
             textBox1 = new TextBox();
             CurrentUserTextBox = new TextBox();
@@ -426,6 +427,7 @@ namespace VocabularyTrainer.WinApp
             MyWordsPage.Controls.Add(MyWordsPageLabel);
             MyWordsPage.Controls.Add(MyWordsNextButton);
             MyWordsPage.Controls.Add(MyWordsDeleteButton);
+            MyWordsPage.Controls.Add(MyWordsResetButton);
             MyWordsPage.ForeColor = Color.Black;
             MyWordsPage.Location = new Point(4, 29);
             MyWordsPage.Name = "MyWordsPage";
@@ -516,7 +518,19 @@ namespace VocabularyTrainer.WinApp
             MyWordsDateToPicker.ShowCheckBox = true;
             MyWordsDateToPicker.Size = new Size(155, 31);
             MyWordsDateToPicker.TabIndex = 7;
-            // 
+            //
+            // MyWordsResetButton
+            //
+            MyWordsResetButton.Font = new Font("Comic Sans MS", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            MyWordsResetButton.ForeColor = Color.Black;
+            MyWordsResetButton.Location = new Point(479, 59);
+            MyWordsResetButton.Name = "MyWordsResetButton";
+            MyWordsResetButton.Size = new Size(120, 35);
+            MyWordsResetButton.TabIndex = 13;
+            MyWordsResetButton.Text = "Reset";
+            MyWordsResetButton.UseVisualStyleBackColor = true;
+            MyWordsResetButton.Click += MyWordsResetButton_Click;
+            //
             // MyWordsGrid
             // 
             MyWordsGrid.ColumnHeadersHeight = 29;
@@ -701,6 +715,7 @@ namespace VocabularyTrainer.WinApp
 		private Label MyWordsPageLabel;
 		private Button MyWordsNextButton;
 		private Button MyWordsDeleteButton;
+		private Button MyWordsResetButton;
 		// User page
 		private Label CurrentUserLabel;
 		private TextBox CurrentUserTextBox;

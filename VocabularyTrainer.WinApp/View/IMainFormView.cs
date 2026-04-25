@@ -20,6 +20,7 @@ namespace VocabularyTrainer.WinApp.View
 		event EventHandler? NextWordPageRequested;
 		event EventHandler? DeleteMyWordsWordRequested;
 		event EventHandler<string>? MyWordsSortChanged;
+		event EventHandler? ResetWordFilterRequested;
 
 		string CurrentUserName { get; }
 		string InputWord { get; }
@@ -50,5 +51,6 @@ namespace VocabularyTrainer.WinApp.View
 		void ClearMyWordsDictionaryInput();
 
 		void LoadMyWordsPage(PagedResult<WordDto> result);
+		void ResetMyWordsFilters();
 	}
 }

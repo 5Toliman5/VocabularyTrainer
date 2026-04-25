@@ -78,6 +78,18 @@ namespace VocabularyTrainer.WinApp.Presenter
 			});
 		}
 
+		private async void OnResetWordFilterRequested(object? sender, EventArgs e)
+		{
+			await ExecuteIfFreeAsync(async () =>
+			{
+				_myWordsSortBy = WordSortBy.DateAdded;
+				_myWordsSortDesc = true;
+				_view.ResetMyWordsFilters();
+				_myWordsPage = 1;
+				await LoadMyWordsPageAsync();
+			});
+		}
+
 		private async void OnMyWordsSortChanged(object? sender, string columnName)
 		{
 			await ExecuteIfFreeAsync(async () =>

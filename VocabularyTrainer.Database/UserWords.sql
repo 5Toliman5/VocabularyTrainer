@@ -8,7 +8,12 @@ CREATE TABLE [dbo].[UserWords]
 	[DateAdded] [datetime2] NOT NULL DEFAULT GETUTCDATE(),
 	[DateModified] [datetime2] NOT NULL DEFAULT GETUTCDATE()
 )
+GO
 
 CREATE INDEX IX_UserWords_UserId       ON [dbo].[UserWords] ([UserId]);
+GO
+
 CREATE INDEX IX_UserWords_DictionaryId ON [dbo].[UserWords] ([DictionaryId]);
+GO
+
 CREATE INDEX IX_UserWords_DateAdded    ON [dbo].[UserWords] ([DateAdded]);

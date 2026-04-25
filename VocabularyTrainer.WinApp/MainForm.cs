@@ -37,6 +37,7 @@ namespace VocabularyTrainer.WinApp
 		public event EventHandler? NextWordPageRequested;
 		public event EventHandler? DeleteMyWordsWordRequested;
 		public event EventHandler<string>? MyWordsSortChanged;
+		public event EventHandler? ResetWordFilterRequested;
 
 		// ── Shared view methods ───────────────────────────────────────────────
 		public void ShowError(string message) =>

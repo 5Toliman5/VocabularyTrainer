@@ -133,8 +133,22 @@ namespace VocabularyTrainer.WinApp
 		private void MyWordsPage_Enter(object sender, EventArgs e) =>
 			MyWordsPageEntered?.Invoke(this, EventArgs.Empty);
 
+		public void ResetMyWordsFilters()
+		{
+			MyWordsDictionaryCombo.SelectedIndex = 0;
+			MyWordsLanguageCombo.SelectedIndex = 0;
+			MyWordsSearchBox.Clear();
+			MyWordsDateFromPicker.Checked = false;
+			MyWordsDateToPicker.Checked = false;
+			_myWordsSortColumn = "DateAdded";
+			_myWordsSortDesc = true;
+		}
+
 		private void MyWordsApplyButton_Click(object sender, EventArgs e) =>
 			ApplyWordFilterRequested?.Invoke(sender, e);
+
+		private void MyWordsResetButton_Click(object sender, EventArgs e) =>
+			ResetWordFilterRequested?.Invoke(sender, e);
 
 		private void MyWordsPrevButton_Click(object sender, EventArgs e) =>
 			PreviousWordPageRequested?.Invoke(sender, e);

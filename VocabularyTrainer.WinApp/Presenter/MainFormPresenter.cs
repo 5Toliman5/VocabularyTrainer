@@ -55,6 +55,7 @@ namespace VocabularyTrainer.WinApp.Presenter
 			_view.NextWordPageRequested -= OnNextWordPageRequested;
 			_view.DeleteMyWordsWordRequested -= OnDeleteMyWordsWordRequested;
 			_view.MyWordsSortChanged -= OnMyWordsSortChanged;
+			_view.ResetWordFilterRequested -= OnResetWordFilterRequested;
 		}
 
 		private void SubscribeToEvents()
@@ -75,6 +76,7 @@ namespace VocabularyTrainer.WinApp.Presenter
 			_view.NextWordPageRequested += OnNextWordPageRequested;
 			_view.DeleteMyWordsWordRequested += OnDeleteMyWordsWordRequested;
 			_view.MyWordsSortChanged += OnMyWordsSortChanged;
+			_view.ResetWordFilterRequested += OnResetWordFilterRequested;
 		}
 
 		private async Task ExecuteIfFreeAsync(Func<Task> action)
