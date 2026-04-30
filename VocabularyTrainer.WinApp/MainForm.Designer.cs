@@ -532,7 +532,12 @@ namespace VocabularyTrainer.WinApp
             MyWordsResetButton.Click += MyWordsResetButton_Click;
             //
             // MyWordsGrid
-            // 
+            //
+            MyWordsGrid.AllowUserToAddRows = false;
+            MyWordsGrid.AllowUserToDeleteRows = false;
+            MyWordsGrid.AllowUserToOrderColumns = true;
+            MyWordsGrid.AllowUserToResizeRows = false;
+            MyWordsGrid.BackgroundColor = SystemColors.Menu;
             MyWordsGrid.ColumnHeadersHeight = 29;
             MyWordsGrid.Location = new Point(8, 106);
             MyWordsGrid.Name = "MyWordsGrid";
