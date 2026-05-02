@@ -1,4 +1,5 @@
 using System.Reflection;
+using VocabularyTrainer.Api.Middleware;
 using VocabularyTrainer.DataAccess;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,6 +21,8 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+
+app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 app.UseSwagger();
 app.UseSwaggerUI();

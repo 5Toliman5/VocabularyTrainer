@@ -1,4 +1,5 @@
 using AutoMapper;
+using Common.Web.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using VocabularyTrainer.Domain.Models;
 using VocabularyTrainer.Domain.Repositories;
@@ -15,9 +16,8 @@ using DomainUpdateWeightRequest = VocabularyTrainer.Domain.Models.UpdateWordWeig
 
 namespace VocabularyTrainer.Api.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
-    public class WordsController(IWordRepository repository, IMapper mapper) : ControllerBase
+    public class WordsController(IWordRepository repository, IMapper mapper) : BaseApiController
     {
         [HttpGet]
         public async Task<IEnumerable<WordResponse>> GetAll([FromQuery] int userId, [FromQuery] int? dictionaryId = null)

@@ -87,11 +87,6 @@ namespace VocabularyTrainer.WinApp.Presenter
 				_isBusy = true;
 				await action();
 			}
-			catch (DuplicateNameException ex)
-			{
-				_logger.LogWarning(ex, "Duplicate dictionary name attempted");
-				_view.ShowError(Constants.DuplicateDictionaryName);
-			}
 			catch (DatabaseException ex)
 			{
 				_logger.LogError(ex, "Database error");

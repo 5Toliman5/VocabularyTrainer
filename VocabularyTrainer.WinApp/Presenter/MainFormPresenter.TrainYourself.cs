@@ -11,10 +11,13 @@ namespace VocabularyTrainer.WinApp.Presenter
 		{
 			await ExecuteIfFreeAsync(async () =>
 			{
-				_user = await _userService.GetAsync(userName);
-
-				if (!ValidateUser()) return;
-
+				var userResult = await _userService.GetAsync(userName);
+				if (!userResult.Successful)
+				{
+					_view.ShowError(string.Format(Constants.UserNotFoundError, userName));
+					return;
+				}
+				_user = userResult.Value;
 				_wordTrainerService.SetUser(_user!);
 
 				var dicts = await _dictionaryService.GetAllAsync(_user!.Id);

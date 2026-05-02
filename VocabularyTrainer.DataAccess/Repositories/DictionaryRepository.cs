@@ -1,4 +1,5 @@
 using Dapper;
+using Common.Wrappers;
 using Microsoft.Data.SqlClient;
 using VocabularyTrainer.DataAccess.SqlQueries;
 using VocabularyTrainer.Domain.Exceptions;
@@ -27,16 +28,17 @@ namespace VocabularyTrainer.DataAccess.Repositories
 			}
 		}
 
-		public async Task<int> AddAsync(AddDictionaryRequest request)
+		public async Task<Result<int>> AddAsync(AddDictionaryRequest request)
 		{
 			try
 			{
 				await using var connection = new SqlConnection(connectionString);
-				return await connection.ExecuteScalarAsync<int>(DictionarySqlQueries.Insert, request);
+				var id = await connection.ExecuteScalarAsync<int>(DictionarySqlQueries.Insert, request);
+				return Result<int>.Success(id);
 			}
 			catch (SqlException ex) when (ex.Number is SqlUniqueConstraintViolation or SqlUniqueIndexViolation)
 			{
-				throw new DuplicateNameException(ex);
+				return Result<int>.Failure("A dictionary with this name already exists.");
 			}
 			catch (SqlException ex)
 			{
@@ -44,16 +46,17 @@ namespace VocabularyTrainer.DataAccess.Repositories
 			}
 		}
 
-		public async Task UpdateAsync(UpdateDictionaryRequest request)
+		public async Task<Result> UpdateAsync(UpdateDictionaryRequest request)
 		{
 			try
 			{
 				await using var connection = new SqlConnection(connectionString);
 				await connection.ExecuteAsync(DictionarySqlQueries.Update, request);
+				return Result.Success();
 			}
 			catch (SqlException ex) when (ex.Number is SqlUniqueConstraintViolation or SqlUniqueIndexViolation)
 			{
-				throw new DuplicateNameException(ex);
+				return Result.Failure("A dictionary with this name already exists.");
 			}
 			catch (SqlException ex)
 			{

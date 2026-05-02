@@ -1,3 +1,4 @@
+using Common.Wrappers;
 using VocabularyTrainer.Domain.Models;
 using VocabularyTrainer.Domain.Repositories;
 using VocabularyTrainer.Domain.Services;
@@ -11,13 +12,16 @@ namespace VocabularyTrainer.BusinessLogic.Services
 			return repository.GetAllAsync(userId);
 		}
 
-		public async Task<DictionaryDto> AddAsync(AddDictionaryRequest request)
+		public async Task<Result<DictionaryDto>> AddAsync(AddDictionaryRequest request)
 		{
-			var id = await repository.AddAsync(request);
-			return new DictionaryDto(id, request.Name, request.LanguageCode);
+			var result = await repository.AddAsync(request);
+			if (!result.Successful)
+				return Result<DictionaryDto>.Failure(result.ErrorMessage!);
+
+			return Result<DictionaryDto>.Success(new DictionaryDto(result.Value, request.Name, request.LanguageCode));
 		}
 
-		public Task UpdateAsync(UpdateDictionaryRequest request)
+		public Task<Result> UpdateAsync(UpdateDictionaryRequest request)
 		{
 			return repository.UpdateAsync(request);
 		}

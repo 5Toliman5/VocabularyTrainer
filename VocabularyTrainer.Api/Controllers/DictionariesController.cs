@@ -1,16 +1,16 @@
 using AutoMapper;
+using Common.Web.Controllers;
+using Common.Web.Wrappers;
 using Microsoft.AspNetCore.Mvc;
 using VocabularyTrainer.Api.Contract.Dictionaries;
-using VocabularyTrainer.Domain.Exceptions;
 using VocabularyTrainer.Domain.Repositories;
 using DomainAddDictRequest = VocabularyTrainer.Domain.Models.AddDictionaryRequest;
 using DomainUpdateDictRequest = VocabularyTrainer.Domain.Models.UpdateDictionaryRequest;
 
 namespace VocabularyTrainer.Api.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
-    public class DictionariesController(IDictionaryRepository repository, IMapper mapper) : ControllerBase
+    public class DictionariesController(IDictionaryRepository repository, IMapper mapper) : BaseApiController
     {
         [HttpGet]
         public async Task<IEnumerable<DictionaryResponse>> GetAll([FromQuery] int userId)
@@ -23,59 +23,36 @@ namespace VocabularyTrainer.Api.Controllers
         public async Task<IActionResult> Add([FromBody] AddDictionaryRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.Name))
-                return BadRequest(new ProblemDetails { Title = "Validation error", Detail = "Dictionary name is required." });
+                return ResolveFailure(ApiResult.Failure("Dictionary name is required.", ApiErrorType.Validation));
 
-            try
-            {
-                var id = await repository.AddAsync(mapper.Map<DomainAddDictRequest>(request));
-                var response = new DictionaryResponse(id, request.Name, request.LanguageCode, 0);
-                return CreatedAtAction(nameof(GetAll), new { userId = request.UserId }, response);
-            }
-            catch (DuplicateNameException)
-            {
-                return Conflict(new ProblemDetails { Title = "Duplicate name", Detail = "A dictionary with this name already exists." });
-            }
-            catch (DatabaseException ex)
-            {
-                return Problem(detail: ex.Message, statusCode: 500);
-            }
+            var result = await repository.AddAsync(mapper.Map<DomainAddDictRequest>(request));
+            if (!result.Successful)
+                return ResolveFailure(ApiResult.Failure(result.ErrorMessage!, ApiErrorType.Conflict));
+
+            var response = new DictionaryResponse(result.Value, request.Name, request.LanguageCode, 0);
+            return CreatedAtAction(nameof(GetAll), new { userId = request.UserId }, response);
         }
 
         [HttpPut("{dictionaryId:int}")]
         public async Task<IActionResult> Update(int dictionaryId, [FromBody] UpdateDictionaryRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.Name))
-                return BadRequest(new ProblemDetails { Title = "Validation error", Detail = "Dictionary name is required." });
+                return ResolveFailure(ApiResult.Failure("Dictionary name is required.", ApiErrorType.Validation));
 
-            try
-            {
-                var domainRequest = mapper.Map<DomainUpdateDictRequest>(
-                    request, opts => opts.Items["dictionaryId"] = dictionaryId);
-                await repository.UpdateAsync(domainRequest);
-                return NoContent();
-            }
-            catch (DuplicateNameException)
-            {
-                return Conflict(new ProblemDetails { Title = "Duplicate name", Detail = "A dictionary with this name already exists." });
-            }
-            catch (DatabaseException ex)
-            {
-                return Problem(detail: ex.Message, statusCode: 500);
-            }
+            var domainRequest = mapper.Map<DomainUpdateDictRequest>(
+                request, opts => opts.Items["dictionaryId"] = dictionaryId);
+            var result = await repository.UpdateAsync(domainRequest);
+            if (!result.Successful)
+                return ResolveFailure(ApiResult.Failure(result.ErrorMessage!, ApiErrorType.Conflict));
+
+            return NoContent();
         }
 
         [HttpDelete("{dictionaryId:int}")]
         public async Task<IActionResult> Delete(int dictionaryId, [FromQuery] int userId)
         {
-            try
-            {
-                await repository.DeleteAsync(dictionaryId, userId);
-                return NoContent();
-            }
-            catch (DatabaseException ex)
-            {
-                return Problem(detail: ex.Message, statusCode: 500);
-            }
+            await repository.DeleteAsync(dictionaryId, userId);
+            return NoContent();
         }
     }
 }

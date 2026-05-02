@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using AutoMapper;
-using VocabularyTrainer.Domain.Exceptions;
+using Common.Wrappers;
 using VocabularyTrainer.Domain.Models;
 using VocabularyTrainer.Domain.Repositories;
 using CDictionaryResponse = VocabularyTrainer.Api.Contract.Dictionaries.DictionaryResponse;
@@ -19,47 +19,47 @@ namespace VocabularyTrainer.WinApp.ApiClient.Repositories
             return mapper.Map<List<DictionaryDto>>(response);
         }
 
-        public async Task<int> AddAsync(AddDictionaryRequest request)
+        public async Task<Result<int>> AddAsync(AddDictionaryRequest request)
         {
             var response = await httpClient.PostAsJsonAsync("api/dictionaries", mapper.Map<CAddDictionaryRequest>(request));
-            await EnsureSuccessAsync(response);
+
+            if (response.StatusCode == HttpStatusCode.Conflict)
+                return Result<int>.Failure(await ReadDetailAsync(response) ?? "A dictionary with this name already exists.");
+
+            response.EnsureSuccessStatusCode();
             var created = await response.Content.ReadFromJsonAsync<CDictionaryResponse>();
-            return created!.Id;
+            return Result<int>.Success(created!.Id);
         }
 
-        public async Task UpdateAsync(UpdateDictionaryRequest request)
+        public async Task<Result> UpdateAsync(UpdateDictionaryRequest request)
         {
             var response = await httpClient.PutAsJsonAsync(
                 $"api/dictionaries/{request.DictionaryId}", mapper.Map<CUpdateDictionaryRequest>(request));
-            await EnsureSuccessAsync(response);
+
+            if (response.StatusCode == HttpStatusCode.Conflict)
+                return Result.Failure(await ReadDetailAsync(response) ?? "A dictionary with this name already exists.");
+
+            response.EnsureSuccessStatusCode();
+            return Result.Success();
         }
 
         public async Task DeleteAsync(int dictionaryId, int userId)
         {
             var response = await httpClient.DeleteAsync($"api/dictionaries/{dictionaryId}?userId={userId}");
-            await EnsureSuccessAsync(response);
+            response.EnsureSuccessStatusCode();
         }
 
-        private static async Task EnsureSuccessAsync(HttpResponseMessage response)
+        private static async Task<string?> ReadDetailAsync(HttpResponseMessage response)
         {
-            if (response.IsSuccessStatusCode) return;
-
-            string? detail = null;
             try
             {
                 var doc = await response.Content.ReadFromJsonAsync<JsonElement>();
                 if (doc.TryGetProperty("detail", out var prop) && prop.ValueKind == JsonValueKind.String)
-                    detail = prop.GetString();
+                    return prop.GetString();
             }
             catch { }
 
-            if (response.StatusCode == HttpStatusCode.Conflict)
-                throw new DuplicateNameException(new Exception(detail ?? "Duplicate name."));
-
-            if (response.StatusCode == HttpStatusCode.InternalServerError)
-                throw new DatabaseException(detail ?? "Database error.", new Exception(detail));
-
-            throw new Exception(detail ?? $"Request failed ({(int)response.StatusCode}).");
+            return null;
         }
     }
 }

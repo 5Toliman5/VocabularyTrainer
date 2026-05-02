@@ -26,8 +26,13 @@ namespace VocabularyTrainer.WinApp.Presenter
 			{
 				if (_user is null)
 				{
-					_user = await _userService.GetAsync(_view.CurrentUserName);
-					if (!ValidateUser()) return;
+					var userResult = await _userService.GetAsync(_view.CurrentUserName);
+					if (!userResult.Successful)
+					{
+						_view.ShowError(string.Format(Constants.UserNotFoundError, _view.CurrentUserName));
+						return;
+					}
+					_user = userResult.Value;
 					_wordTrainerService.SetUser(_user!);
 				}
 

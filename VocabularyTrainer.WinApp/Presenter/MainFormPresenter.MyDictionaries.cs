@@ -12,8 +12,13 @@ namespace VocabularyTrainer.WinApp.Presenter
 			{
 				if (_user is null)
 				{
-					_user = await _userService.GetAsync(_view.CurrentUserName);
-					if (!ValidateUser()) return;
+					var userResult = await _userService.GetAsync(_view.CurrentUserName);
+					if (!userResult.Successful)
+					{
+						_view.ShowError(string.Format(Constants.UserNotFoundError, _view.CurrentUserName));
+						return;
+					}
+					_user = userResult.Value;
 					_wordTrainerService.SetUser(_user!);
 				}
 
@@ -28,7 +33,12 @@ namespace VocabularyTrainer.WinApp.Presenter
 			{
 				if (!ValidateUser()) return;
 
-				await _dictionaryService.AddAsync(new AddDictionaryRequest(_user!.Id, e.Name, e.LanguageCode));
+				var result = await _dictionaryService.AddAsync(new AddDictionaryRequest(_user!.Id, e.Name, e.LanguageCode));
+				if (!result.Successful)
+				{
+					_view.ShowError(Constants.DuplicateDictionaryName);
+					return;
+				}
 
 				var dicts = await _dictionaryService.GetAllAsync(_user!.Id);
 				_view.LoadDictionaries(dicts);
@@ -52,8 +62,13 @@ namespace VocabularyTrainer.WinApp.Presenter
 					return;
 				}
 
-				await _dictionaryService.UpdateAsync(
+				var result = await _dictionaryService.UpdateAsync(
 					new UpdateDictionaryRequest(dictionaryId.Value, _user!.Id, name, _view.InputLanguageCode));
+				if (!result.Successful)
+				{
+					_view.ShowError(Constants.DuplicateDictionaryName);
+					return;
+				}
 
 				var dicts = await _dictionaryService.GetAllAsync(_user!.Id);
 				_view.LoadDictionaries(dicts);

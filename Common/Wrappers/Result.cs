@@ -7,11 +7,11 @@
     }
 
     public abstract class ResultBase<T> : IResult
-        where T: ResultBase<T>, new()
+        where T : ResultBase<T>, new()
     {
-        public bool Successful { get; private init; }
+        public bool Successful { get; protected init; }
 
-        public string ErrorMessage { get; private init; }
+        public string ErrorMessage { get; protected init; }
 
         public static T Success()
         {
