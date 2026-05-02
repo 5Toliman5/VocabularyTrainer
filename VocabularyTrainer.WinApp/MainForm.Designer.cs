@@ -385,12 +385,13 @@ namespace VocabularyTrainer.WinApp
             AddDictionaryButton.Name = "AddDictionaryButton";
             AddDictionaryButton.Size = new Size(136, 43);
             AddDictionaryButton.TabIndex = 5;
-            AddDictionaryButton.Text = "Add";
+            AddDictionaryButton.Text = "Add New...";
             AddDictionaryButton.UseVisualStyleBackColor = true;
             AddDictionaryButton.Click += AddDictionary;
             // 
             // UpdateDictionaryButton
             // 
+            UpdateDictionaryButton.Enabled = false;
             UpdateDictionaryButton.ForeColor = Color.Black;
             UpdateDictionaryButton.Location = new Point(450, 105);
             UpdateDictionaryButton.Name = "UpdateDictionaryButton";
@@ -402,6 +403,7 @@ namespace VocabularyTrainer.WinApp
             // 
             // DeleteDictionaryButton
             // 
+            DeleteDictionaryButton.Enabled = false;
             DeleteDictionaryButton.ForeColor = Color.Black;
             DeleteDictionaryButton.Location = new Point(648, 105);
             DeleteDictionaryButton.Name = "DeleteDictionaryButton";

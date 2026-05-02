@@ -1,5 +1,6 @@
 using VocabularyTrainer.Domain.Models;
 using VocabularyTrainer.WinApp.Infrastructure;
+using VocabularyTrainer.WinApp.View;
 
 namespace VocabularyTrainer.WinApp.Presenter
 {
@@ -21,20 +22,13 @@ namespace VocabularyTrainer.WinApp.Presenter
 			});
 		}
 
-		private async void OnAddDictionaryRequested(object? sender, EventArgs e)
+		private async void OnAddDictionaryRequested(object? sender, DictionaryInputEventArgs e)
 		{
 			await ExecuteIfFreeAsync(async () =>
 			{
 				if (!ValidateUser()) return;
 
-				var name = _view.InputDictionaryName.Trim();
-				if (string.IsNullOrEmpty(name))
-				{
-					_view.ShowError(Constants.DictionaryNameRequired);
-					return;
-				}
-
-				await _dictionaryService.AddAsync(new AddDictionaryRequest(_user!.Id, name, _view.InputLanguageCode));
+				await _dictionaryService.AddAsync(new AddDictionaryRequest(_user!.Id, e.Name, e.LanguageCode));
 
 				var dicts = await _dictionaryService.GetAllAsync(_user!.Id);
 				_view.LoadDictionaries(dicts);

@@ -1,5 +1,7 @@
 using System.Globalization;
 using VocabularyTrainer.Domain.Models;
+using VocabularyTrainer.WinApp.Forms;
+using VocabularyTrainer.WinApp.View;
 
 namespace VocabularyTrainer.WinApp
 {
@@ -28,6 +30,8 @@ namespace VocabularyTrainer.WinApp
 			LanguageComboBox.SelectedIndex = -1;
 			DictionariesListBox.SelectedIndex = -1;
 			WordCountLabel.Text = string.Empty;
+			UpdateDictionaryButton.Enabled = false;
+			DeleteDictionaryButton.Enabled = false;
 		}
 
 		private void InitializeLanguageComboBox()
@@ -68,11 +72,15 @@ namespace VocabularyTrainer.WinApp
 			if (DictionariesListBox.SelectedItem is not DictionaryDto selected)
 			{
 				WordCountLabel.Text = string.Empty;
+				UpdateDictionaryButton.Enabled = false;
+				DeleteDictionaryButton.Enabled = false;
 				return;
 			}
 
 			DictionaryNameInputTextBox.Text = selected.Name;
 			WordCountLabel.Text = $"{selected.WordCount} word{(selected.WordCount == 1 ? "" : "s")}";
+			UpdateDictionaryButton.Enabled = true;
+			DeleteDictionaryButton.Enabled = true;
 
 			if (!string.IsNullOrEmpty(selected.LanguageCode))
 			{
@@ -85,7 +93,13 @@ namespace VocabularyTrainer.WinApp
 			}
 		}
 
-		private void AddDictionary(object sender, EventArgs e) => AddDictionaryRequested?.Invoke(sender, e);
+		private void AddDictionary(object sender, EventArgs e)
+		{
+			using var form = new AddDictionaryForm(_neutralCultures);
+			if (form.ShowDialog(this) != DialogResult.OK) return;
+			AddDictionaryRequested?.Invoke(this, new DictionaryInputEventArgs(form.DictionaryName, form.DictionaryLanguageCode));
+		}
+
 		private void UpdateDictionary(object sender, EventArgs e) => UpdateDictionaryRequested?.Invoke(sender, e);
 		private void DeleteDictionary(object sender, EventArgs e) => DeleteDictionaryRequested?.Invoke(sender, e);
 	}

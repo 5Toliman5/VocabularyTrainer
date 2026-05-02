@@ -1,6 +1,7 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using VocabularyTrainer.Api.Contract.Dictionaries;
+using VocabularyTrainer.Domain.Exceptions;
 using VocabularyTrainer.Domain.Repositories;
 using DomainAddDictRequest = VocabularyTrainer.Domain.Models.AddDictionaryRequest;
 using DomainUpdateDictRequest = VocabularyTrainer.Domain.Models.UpdateDictionaryRequest;
@@ -21,25 +22,60 @@ namespace VocabularyTrainer.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] AddDictionaryRequest request)
         {
-            var id = await repository.AddAsync(mapper.Map<DomainAddDictRequest>(request));
-            var response = new DictionaryResponse(id, request.Name, request.LanguageCode, 0);
-            return CreatedAtAction(nameof(GetAll), new { userId = request.UserId }, response);
+            if (string.IsNullOrWhiteSpace(request.Name))
+                return BadRequest(new ProblemDetails { Title = "Validation error", Detail = "Dictionary name is required." });
+
+            try
+            {
+                var id = await repository.AddAsync(mapper.Map<DomainAddDictRequest>(request));
+                var response = new DictionaryResponse(id, request.Name, request.LanguageCode, 0);
+                return CreatedAtAction(nameof(GetAll), new { userId = request.UserId }, response);
+            }
+            catch (DuplicateNameException)
+            {
+                return Conflict(new ProblemDetails { Title = "Duplicate name", Detail = "A dictionary with this name already exists." });
+            }
+            catch (DatabaseException ex)
+            {
+                return Problem(detail: ex.Message, statusCode: 500);
+            }
         }
 
         [HttpPut("{dictionaryId:int}")]
         public async Task<IActionResult> Update(int dictionaryId, [FromBody] UpdateDictionaryRequest request)
         {
-            var domainRequest = mapper.Map<DomainUpdateDictRequest>(
-                request, opts => opts.Items["dictionaryId"] = dictionaryId);
-            await repository.UpdateAsync(domainRequest);
-            return NoContent();
+            if (string.IsNullOrWhiteSpace(request.Name))
+                return BadRequest(new ProblemDetails { Title = "Validation error", Detail = "Dictionary name is required." });
+
+            try
+            {
+                var domainRequest = mapper.Map<DomainUpdateDictRequest>(
+                    request, opts => opts.Items["dictionaryId"] = dictionaryId);
+                await repository.UpdateAsync(domainRequest);
+                return NoContent();
+            }
+            catch (DuplicateNameException)
+            {
+                return Conflict(new ProblemDetails { Title = "Duplicate name", Detail = "A dictionary with this name already exists." });
+            }
+            catch (DatabaseException ex)
+            {
+                return Problem(detail: ex.Message, statusCode: 500);
+            }
         }
 
         [HttpDelete("{dictionaryId:int}")]
         public async Task<IActionResult> Delete(int dictionaryId, [FromQuery] int userId)
         {
-            await repository.DeleteAsync(dictionaryId, userId);
-            return NoContent();
+            try
+            {
+                await repository.DeleteAsync(dictionaryId, userId);
+                return NoContent();
+            }
+            catch (DatabaseException ex)
+            {
+                return Problem(detail: ex.Message, statusCode: 500);
+            }
         }
     }
 }

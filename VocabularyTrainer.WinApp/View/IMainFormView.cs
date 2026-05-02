@@ -10,7 +10,7 @@ namespace VocabularyTrainer.WinApp.View
 		event EventHandler? DeleteWordRequested;
 		event EventHandler? ShowNextWordRequested;
 		event EventHandler? ShowTranslationRequested;
-		event EventHandler? AddDictionaryRequested;
+		event EventHandler<DictionaryInputEventArgs>? AddDictionaryRequested;
 		event EventHandler? UpdateDictionaryRequested;
 		event EventHandler? DeleteDictionaryRequested;
 		event EventHandler? MyDictionariesPageEntered;
