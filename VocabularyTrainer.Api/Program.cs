@@ -1,13 +1,13 @@
 using System.Reflection;
+using VocabularyTrainer.Api.BusinessLogic;
 using VocabularyTrainer.Api.Middleware;
-using VocabularyTrainer.DataAccess;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("Default")
     ?? throw new InvalidOperationException("Connection string 'Default' is not configured.");
 
-builder.Services.AddDataAccess(connectionString);
+builder.Services.AddApiBusinessLogic(connectionString);
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddControllers();
 

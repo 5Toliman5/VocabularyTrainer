@@ -18,6 +18,7 @@ namespace VocabularyTrainer.BusinessLogic
 		public static IServiceCollection AddVocabularyTrainer(this IServiceCollection services)
 		{
 			services.AddSingleton<IUserService, UserService>();
+			services.AddSingleton<IWordService, WordService>();
 			services.AddSingleton<IWordsShuffleService, WordsShuffleService>();
 			services.AddSingleton<IDictionaryService, DictionaryService>();
 			services.AddSingleton<IWordTrainerService>(provider =>

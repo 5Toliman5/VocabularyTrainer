@@ -15,8 +15,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Common.Web\Common.Web.csproj" />
+    <ProjectReference Include="..\VocabularyTrainer.Api.BusinessLogic\VocabularyTrainer.Api.BusinessLogic.csproj" />
     <ProjectReference Include="..\VocabularyTrainer.Api.Contract\VocabularyTrainer.Api.Contract.csproj" />
-    <ProjectReference Include="..\VocabularyTrainer.DataAccess\VocabularyTrainer.DataAccess.csproj" />
     <ProjectReference Include="..\VocabularyTrainer.Domain\VocabularyTrainer.Domain.csproj" />
   </ItemGroup>
 

@@ -100,12 +100,12 @@ Repositories always wrap external calls (SQL, HTTP) in try-catch:
 
 ### API controllers
 
-All controllers inherit `BaseApiController` (from `Common.Web`).
+All controllers inherit `BaseApiController` (from `Common.Web`). Controllers call **services** (not repositories directly) and use `IMapper` to translate between `Api.Contract` DTOs and `Domain.Models`.
 
 Controllers convert domain `Result` failures to `ApiResult` with the appropriate `ErrorType`, then call `ResolveFailure`:
 
 ```csharp
-var result = await repository.AddAsync(request);
+var result = await service.AddAsync(mapper.Map<DomainAddDictRequest>(request));
 if (!result.Successful)
     return ResolveFailure(ApiResult.Failure(result.ErrorMessage!, ApiErrorType.Conflict));
 ```

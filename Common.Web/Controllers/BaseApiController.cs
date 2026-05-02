@@ -6,7 +6,7 @@ namespace Common.Web.Controllers
     [ApiController]
     public abstract class BaseApiController : ControllerBase
     {
-        protected IActionResult ResolveFailure(IApiResult result)
+        protected IActionResult ResolveFailure(IApiOperationResult result)
         {
             return result.ErrorType switch
             {

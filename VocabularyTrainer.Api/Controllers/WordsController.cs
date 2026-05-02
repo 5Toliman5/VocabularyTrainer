@@ -1,8 +1,8 @@
 using AutoMapper;
 using Common.Web.Controllers;
 using Microsoft.AspNetCore.Mvc;
+using VocabularyTrainer.Api.BusinessLogic.Services;
 using VocabularyTrainer.Domain.Models;
-using VocabularyTrainer.Domain.Repositories;
 // Contract aliases — take priority over the Domain.Models namespace import for same-named types
 using AddWordRequest = VocabularyTrainer.Api.Contract.Words.AddWordRequest;
 using DeleteWordRequest = VocabularyTrainer.Api.Contract.Words.DeleteWordRequest;
@@ -17,19 +17,19 @@ using DomainUpdateWeightRequest = VocabularyTrainer.Domain.Models.UpdateWordWeig
 namespace VocabularyTrainer.Api.Controllers
 {
     [Route("api/[controller]")]
-    public class WordsController(IWordRepository repository, IMapper mapper) : BaseApiController
+    public class WordsController(IApiWordService service, IMapper mapper) : BaseApiController
     {
         [HttpGet]
         public async Task<IEnumerable<WordResponse>> GetAll([FromQuery] int userId, [FromQuery] int? dictionaryId = null)
         {
-            var words = await repository.GetAllAsync(userId, dictionaryId);
+            var words = await service.GetAllAsync(userId, dictionaryId);
             return mapper.Map<IEnumerable<WordResponse>>(words);
         }
 
         [HttpGet("paged")]
         public async Task<PagedResult<WordPageItem>> GetPaged([FromQuery] GetWordsPagedRequest request)
         {
-            var result = await repository.GetPagedAsync(request);
+            var result = await service.GetPagedAsync(request);
             var items = mapper.Map<IReadOnlyList<WordPageItem>>(result.Items);
             return new PagedResult<WordPageItem>(items, result.TotalCount, result.Page, result.PageSize);
         }
@@ -37,21 +37,21 @@ namespace VocabularyTrainer.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] AddWordRequest request)
         {
-            await repository.AddAsync(mapper.Map<DomainAddWordRequest>(request));
+            await service.AddAsync(mapper.Map<DomainAddWordRequest>(request));
             return Created();
         }
 
         [HttpDelete]
         public async Task<IActionResult> Delete([FromBody] DeleteWordRequest request)
         {
-            await repository.DeleteAsync(mapper.Map<DomainUserWordKey>(request));
+            await service.DeleteAsync(mapper.Map<DomainUserWordKey>(request));
             return NoContent();
         }
 
         [HttpPatch("weight")]
         public async Task<IActionResult> UpdateWeight([FromBody] UpdateWordWeightRequest request)
         {
-            await repository.UpdateWeightAsync(mapper.Map<DomainUpdateWeightRequest>(request));
+            await service.UpdateWeightAsync(mapper.Map<DomainUpdateWeightRequest>(request));
             return NoContent();
         }
     }

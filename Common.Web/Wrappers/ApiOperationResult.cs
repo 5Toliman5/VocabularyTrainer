@@ -2,13 +2,13 @@ using Common.Wrappers;
 
 namespace Common.Web.Wrappers
 {
-    public interface IApiResult : IResult
+    public interface IApiOperationResult : IResult
     {
         ApiErrorType ErrorType { get; }
     }
 
-    public abstract class ApiResultBase<T> : ResultBase<T>, IApiResult
-        where T : ApiResultBase<T>, new()
+    public abstract class ApiOperationResultBase<T> : ResultBase<T>, IApiOperationResult
+        where T : ApiOperationResultBase<T>, new()
     {
         public ApiErrorType ErrorType { get; protected init; }
 
@@ -18,15 +18,15 @@ namespace Common.Web.Wrappers
         }
     }
 
-    public class ApiResult : ApiResultBase<ApiResult>
+    public class ApiOperationResult : ApiOperationResultBase<ApiOperationResult>
     {
     }
 
-    public class ApiResult<TValue> : ApiResultBase<ApiResult<TValue>>, IResult<TValue>
+    public class ApiOperationResult<TValue> : ApiOperationResultBase<ApiOperationResult<TValue>>, IResult<TValue>
     {
         public TValue Value { get; private set; }
 
-        public static ApiResult<TValue> Success(TValue value)
+        public static ApiOperationResult<TValue> Success(TValue value)
         {
             var result = Success();
             result.Value = value;
