@@ -1,5 +1,6 @@
 using System.Globalization;
 using VocabularyTrainer.Domain.Models;
+using VocabularyTrainer.WinApp.Infrastructure;
 using VocabularyTrainer.WinApp.View;
 
 namespace VocabularyTrainer.WinApp
@@ -17,6 +18,16 @@ namespace VocabularyTrainer.WinApp
 		}
 
 		public string InputDictionaryName => DictionaryNameInputTextBox.Text;
+
+		public string SelectedDictionaryAlgorithmCode
+		{
+			get
+			{
+				return MyDictionariesAlgorithmComboBox.SelectedItem is AlgorithmComboItem item
+					? item.Code
+					: null;
+			}
+		}
 
 		public string InputLanguageCode
 		{
@@ -49,10 +60,43 @@ namespace VocabularyTrainer.WinApp
 			DictionaryNameInputTextBox.Text = string.Empty;
 			LanguageComboBox.Text = string.Empty;
 			LanguageComboBox.SelectedIndex = -1;
+			MyDictionariesAlgorithmComboBox.SelectedIndex = -1;
 			DictionariesListBox.SelectedIndex = -1;
 			WordCountLabel.Text = string.Empty;
 			UpdateDictionaryButton.Enabled = false;
 			DeleteDictionaryButton.Enabled = false;
+		}
+
+		public void LoadAlgorithms(IReadOnlyList<AlgorithmInfo> algorithms)
+		{
+			var previousCode = SelectedDictionaryAlgorithmCode;
+
+			MyDictionariesAlgorithmComboBox.Items.Clear();
+
+			foreach (var algorithm in algorithms)
+			{
+				MyDictionariesAlgorithmComboBox.Items.Add(new AlgorithmComboItem(algorithm.Code, algorithm.DisplayName));
+			}
+
+			if (previousCode is not null)
+			{
+				SelectAlgorithmByCode(previousCode);
+			}
+		}
+
+		private void SelectAlgorithmByCode(string code)
+		{
+			for (int i = 0; i < MyDictionariesAlgorithmComboBox.Items.Count; i++)
+			{
+				if (MyDictionariesAlgorithmComboBox.Items[i] is AlgorithmComboItem item
+					&& string.Equals(item.Code, code, StringComparison.OrdinalIgnoreCase))
+				{
+					MyDictionariesAlgorithmComboBox.SelectedIndex = i;
+					return;
+				}
+			}
+
+			MyDictionariesAlgorithmComboBox.SelectedIndex = -1;
 		}
 
 		private void InitializeLanguageComboBox()
@@ -124,6 +168,8 @@ namespace VocabularyTrainer.WinApp
 			{
 				LanguageComboBox.Text = string.Empty;
 			}
+
+			SelectAlgorithmByCode(selected.AlgorithmCode);
 		}
 
 		private void AddDictionary(object sender, EventArgs e)

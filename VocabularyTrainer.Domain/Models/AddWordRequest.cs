@@ -5,7 +5,6 @@ namespace VocabularyTrainer.Domain.Models
 		string Value,
 		IReadOnlyList<WordTranslationDto> Translations,
 		int UserId,
-		int DictionaryId,
-		string? Notes = null
+		int DictionaryId
 	);
 }

@@ -103,7 +103,6 @@ namespace VocabularyTrainer.DataAccess.Repositories
 					Value = request.Value,
 					NormalizedText = normalizedText,
 					LanguageCode = languageCode,
-					Notes = request.Notes,
 					Translations = request.Translations
 						.Select(t => new WordTranslation { Text = t.Text, Kind = t.Kind })
 						.ToList(),

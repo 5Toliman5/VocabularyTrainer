@@ -19,8 +19,6 @@ namespace VocabularyTrainer.Domain.Entities
 		[Required, MaxLength(10)]
 		public string LanguageCode { get; set; } = null!;
 
-		public string? Notes { get; set; }
-
 		public DateTime DateAdded { get; set; }
 		public DateTime DateModified { get; set; }
 

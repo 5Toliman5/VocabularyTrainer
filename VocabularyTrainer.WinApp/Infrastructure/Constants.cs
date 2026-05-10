@@ -3,6 +3,7 @@ namespace VocabularyTrainer.WinApp.Infrastructure
 	public static class Constants
 	{
 		public const string EmptyInput = "Please, enter the {0}.";
+		public const string TranslationRequired = "At least one translation is required.";
 		public const string InputTextBoxRegex = @"^[\p{L}\p{M}'\- ]+$";
 		public const string DefaultShowNextButtonText = "I remember!";
 		public const string ChangedShowNextButtonText = "Next word";

@@ -155,13 +155,27 @@ namespace VocabularyTrainer.WinApp.View
 					_algorithmComboBox.Items.Add(new AlgorithmComboItem(algorithm.Code, algorithm.DisplayName));
 				}
 
-				_algorithmComboBox.SelectedIndex = 0;
+				_algorithmComboBox.SelectedIndex = FindDefaultAlgorithmIndex();
 			}
 			else
 			{
 				_algorithmComboBox.Items.Add(new AlgorithmComboItem(AlgorithmCodes.Default, "Weight-based"));
 				_algorithmComboBox.SelectedIndex = 0;
 			}
+		}
+
+		private int FindDefaultAlgorithmIndex()
+		{
+			for (int i = 0; i < _algorithmComboBox.Items.Count; i++)
+			{
+				if (_algorithmComboBox.Items[i] is AlgorithmComboItem item
+					&& string.Equals(item.Code, AlgorithmCodes.Default, StringComparison.OrdinalIgnoreCase))
+				{
+					return i;
+				}
+			}
+
+			return 0;
 		}
 
 		public void ShowValidationError(string message)
@@ -173,12 +187,6 @@ namespace VocabularyTrainer.WinApp.View
 		{
 			DialogResult = DialogResult.OK;
 			Close();
-		}
-
-		private sealed class AlgorithmComboItem(string code, string display)
-		{
-			public string Code { get; } = code;
-			public override string ToString() => display;
 		}
 	}
 }

@@ -14,7 +14,6 @@ namespace VocabularyTrainer.DataAccess.Repositories
 			DictionaryName = w.Dictionary.Name,
 			Value = w.Value,
 			LanguageCode = w.LanguageCode,
-			Notes = w.Notes,
 			DateAdded = w.DateAdded,
 			DateModified = w.DateModified,
 			Translations = w.Translations

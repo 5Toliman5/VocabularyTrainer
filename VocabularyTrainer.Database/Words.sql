@@ -6,7 +6,6 @@
 	[Value]          [nvarchar](200) NOT NULL,
 	[NormalizedText] [nvarchar](200) NOT NULL,
 	[LanguageCode]   [nvarchar](10) NOT NULL,
-	[Notes]          [nvarchar](max) NULL,
 	[DateAdded]      [datetime2] NOT NULL CONSTRAINT [DF_Words_DateAdded]    DEFAULT GETUTCDATE(),
 	[DateModified]   [datetime2] NOT NULL CONSTRAINT [DF_Words_DateModified] DEFAULT GETUTCDATE(),
 	CONSTRAINT [UQ_Words_User_Dict_Normalized] UNIQUE ([UserId], [DictionaryId], [NormalizedText])

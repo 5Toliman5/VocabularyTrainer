@@ -17,9 +17,9 @@ namespace VocabularyTrainer.BusinessLogic.Services.Algorithms
 
 		public AlgorithmInfo Info { get; } = new(
 			Code,
-			"Weight-based (legacy)",
-			"Original algorithm: each word carries an integer weight; words with higher weight " +
-			"are shown more often. Weight goes up on incorrect answers and down on correct ones.",
+			"Weight-based",
+			"Each word carries an integer weight; words with higher weight are shown more often. " +
+			"Weight goes up on incorrect answers and down on correct ones.",
 			AlgorithmCost.Free,
 			[ReviewGrade.Again, ReviewGrade.Good]);
 

@@ -1,3 +1,5 @@
+using VocabularyTrainer.Domain.Models;
+
 namespace VocabularyTrainer.WinApp.View
 {
 	public partial interface IMainFormView
@@ -5,7 +7,7 @@ namespace VocabularyTrainer.WinApp.View
 		event EventHandler? AddWordRequested;
 
 		string InputWord { get; }
-		string InputTranslation { get; }
+		IReadOnlyList<WordTranslationDto> InputTranslations { get; }
 		int? SelectedAddingDictionaryId { get; }
 
 		bool ValidateAddWordInput();

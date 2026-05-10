@@ -22,6 +22,7 @@ namespace VocabularyTrainer.WinApp.Presenter.Main
 		private bool _isBusy;
 		private UserModel? _user;
 		private List<DictionaryDto> _dictionaries = [];
+		private IReadOnlyList<AlgorithmInfo> _algorithms = [];
 
 		public MainFormPresenter(
 			IMainFormView view,
@@ -127,8 +128,26 @@ namespace VocabularyTrainer.WinApp.Presenter.Main
 			_view.LoadDictionaries(_dictionaries);
 		}
 
-		private string GetCurrentAlgorithmCode(int dictionaryId)
+		private async Task EnsureAlgorithmsLoadedAsync()
 		{
+			if (_algorithms.Count > 0)
+			{
+				return;
+			}
+
+			_algorithms = await _algorithmCatalog.GetAllAsync();
+			_view.LoadAlgorithms(_algorithms);
+		}
+
+		private string ResolveAlgorithmCodeForUpdate(int dictionaryId)
+		{
+			var selected = _view.SelectedDictionaryAlgorithmCode;
+
+			if (!string.IsNullOrEmpty(selected))
+			{
+				return selected;
+			}
+
 			var dictionary = _dictionaries.FirstOrDefault(d => d.Id == dictionaryId);
 			return dictionary?.AlgorithmCode ?? AlgorithmCodes.Default;
 		}

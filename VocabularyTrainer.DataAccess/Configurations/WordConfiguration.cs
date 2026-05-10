@@ -17,7 +17,6 @@ namespace VocabularyTrainer.DataAccess.Configurations
 			builder.Property(w => w.Value)          .HasMaxLength(200).IsRequired();
 			builder.Property(w => w.NormalizedText) .HasMaxLength(200).IsRequired();
 			builder.Property(w => w.LanguageCode)   .HasMaxLength(10) .IsRequired();
-			builder.Property(w => w.Notes);
 
 			builder.Property(w => w.DateAdded)   .HasDefaultValueSql("GETUTCDATE()");
 			builder.Property(w => w.DateModified).HasDefaultValueSql("GETUTCDATE()");

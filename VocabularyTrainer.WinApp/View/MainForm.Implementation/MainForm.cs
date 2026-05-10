@@ -24,6 +24,7 @@ namespace VocabularyTrainer.WinApp
 
 			InitializeLanguageComboBox();
 			InitializeMyWordsGrid();
+			InitializeTranslationsEditor();
 		}
 
 		public event EventHandler<string>? UserChanged;

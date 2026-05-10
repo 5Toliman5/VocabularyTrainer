@@ -1,4 +1,5 @@
 using System.Globalization;
+using VocabularyTrainer.Domain.Models;
 
 namespace VocabularyTrainer.WinApp.View
 {
@@ -15,7 +16,9 @@ namespace VocabularyTrainer.WinApp.View
 		int? SelectedMyWordsDictionaryId { get; }
 		string InputDictionaryName { get; }
 		string InputLanguageCode { get; }
+		string SelectedDictionaryAlgorithmCode { get; }
 
 		void ClearMyWordsDictionaryInput();
+		void LoadAlgorithms(IReadOnlyList<AlgorithmInfo> algorithms);
 	}
 }

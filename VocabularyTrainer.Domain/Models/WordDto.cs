@@ -8,7 +8,6 @@ namespace VocabularyTrainer.Domain.Models
 		public string DictionaryName { get; init; } = string.Empty;
 		public string Value { get; init; } = string.Empty;
 		public string LanguageCode { get; init; } = string.Empty;
-		public string? Notes { get; init; }
 		public IReadOnlyList<WordTranslationDto> Translations { get; init; } = [];
 		public DateTime DateAdded { get; init; }
 		public DateTime DateModified { get; init; }

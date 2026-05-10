@@ -24,6 +24,8 @@ namespace VocabularyTrainer.WinApp.Presenter.Main
 					_wordTrainerService.SetUser(_user!);
 				}
 
+				await EnsureAlgorithmsLoadedAsync();
+
 				await RefreshDictionariesAsync();
 			});
 		}
@@ -32,12 +34,12 @@ namespace VocabularyTrainer.WinApp.Presenter.Main
 		{
 			await ExecuteIfFreeAsync(async () =>
 			{
-				var algorithms = await _algorithmCatalog.GetAllAsync();
+				await EnsureAlgorithmsLoadedAsync();
 
 				var input = _addDictionaryFormPresenter.ShowModal(
 					_view.DialogOwner,
 					_view.NeutralCultures,
-					algorithms
+					_algorithms
 				);
 
 				if (input is null) return;
@@ -76,7 +78,7 @@ namespace VocabularyTrainer.WinApp.Presenter.Main
 					return;
 				}
 
-				var algorithmCode = GetCurrentAlgorithmCode(dictionaryId.Value);
+				var algorithmCode = ResolveAlgorithmCodeForUpdate(dictionaryId.Value);
 
 				var request = new UpdateDictionaryRequest(dictionaryId.Value, _user!.Id, name, _view.InputLanguageCode, algorithmCode);
 				var result = await _dictionaryService.UpdateAsync(request);

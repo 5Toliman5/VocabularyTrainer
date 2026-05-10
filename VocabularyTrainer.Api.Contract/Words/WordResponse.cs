@@ -8,7 +8,6 @@ namespace VocabularyTrainer.Api.Contract.Words
         string DictionaryName,
         string Value,
         string LanguageCode,
-        string? Notes,
         IReadOnlyList<WordTranslationDto> Translations,
         DateTime DateAdded,
         DateTime DateModified
