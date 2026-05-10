@@ -1,3 +1,4 @@
+using Common.Wrappers;
 using VocabularyTrainer.Domain.Models;
 
 namespace VocabularyTrainer.Domain.Services
@@ -6,8 +7,7 @@ namespace VocabularyTrainer.Domain.Services
 	{
 		Task<List<WordDto>> GetAllAsync(int userId, int? dictionaryId = null);
 		Task<PagedResult<WordDto>> GetPagedAsync(GetWordsPagedRequest request);
-		Task AddAsync(AddWordRequest request);
-		Task DeleteAsync(UserWordKey key);
-		Task UpdateWeightAsync(UpdateWordWeightRequest request);
+		Task<Result<int>> AddAsync(AddWordRequest request);
+		Task<Result> DeleteAsync(int wordId, int userId);
 	}
 }

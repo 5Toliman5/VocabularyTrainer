@@ -1,0 +1,10 @@
+<Project>
+	<PropertyGroup>
+		<!-- Nullable reference types off solution-wide: avoids CS86xx/CS8618 noise and
+		     the need for pervasive `?`, `!`, and `= null!` on legacy-shaped code. -->
+		<Nullable>disable</Nullable>
+		<!-- Existing `string?` etc. remain valid syntax but are ignored; suppress "annotation
+		     without #nullable context" (CS8632) so the codebase does not need a mass edit. -->
+		<NoWarn>$(NoWarn);CS8632</NoWarn>
+	</PropertyGroup>
+</Project>

@@ -7,6 +7,7 @@ namespace VocabularyTrainer.BusinessLogic.Services
 		public UserModel User { get; } = user;
 		public List<WordDto> Words { get; } = [];
 		public WordDto? CurrentWord { get; set; }
-		public int? DictionaryId { get; set; }
+
+		public DictionaryScope Scope { get; set; } = DictionaryScope.All;
 	}
 }

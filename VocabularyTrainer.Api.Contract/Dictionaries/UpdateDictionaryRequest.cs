@@ -4,6 +4,7 @@ namespace VocabularyTrainer.Api.Contract.Dictionaries
     (
         int UserId,
         string Name,
-        string? LanguageCode
+        string? LanguageCode,
+        string AlgorithmCode
     );
 }

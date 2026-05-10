@@ -1,24 +1,25 @@
-using Dapper;
-using Common.Wrappers;
 using Microsoft.Data.SqlClient;
-using VocabularyTrainer.DataAccess.SqlQueries;
+using Microsoft.EntityFrameworkCore;
+using VocabularyTrainer.DataAccess;
 using VocabularyTrainer.Domain.Exceptions;
 using VocabularyTrainer.Domain.Models;
 using VocabularyTrainer.Domain.Repositories;
 
 namespace VocabularyTrainer.DataAccess.Repositories
 {
-	public class UserRepository(string connectionString) : IUserRepository
+	public class UserRepository(IVocabularyTrainerDbContext dbContext) : IUserRepository
 	{
-		public async Task<Result<UserModel>> GetUserAsync(string userName)
+		public async Task<UserModel?> GetUserAsync(string userName)
 		{
 			try
 			{
-				await using var connection = new SqlConnection(connectionString);
-				var user = await connection.QuerySingleOrDefaultAsync<UserModel>(UserSqlQueries.GetUser, new { UserName = userName });
-				return user is not null
-					? Result<UserModel>.Success(user)
-					: Result<UserModel>.Failure($"User '{userName}' was not found.");
+				var user = await dbContext.Users
+					.AsNoTracking()
+					.Where(u => u.Name == userName)
+					.Select(u => new UserModel(u.Id))
+					.SingleOrDefaultAsync();
+
+				return user;
 			}
 			catch (SqlException ex)
 			{

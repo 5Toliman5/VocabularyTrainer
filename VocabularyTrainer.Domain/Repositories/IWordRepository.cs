@@ -5,9 +5,13 @@ namespace VocabularyTrainer.Domain.Repositories
 	public interface IWordRepository
 	{
 		Task<List<WordDto>> GetAllAsync(int userId, int? dictionaryId = null);
+
 		Task<PagedResult<WordDto>> GetPagedAsync(GetWordsPagedRequest request);
-		Task AddAsync(AddWordRequest request);
-		Task DeleteAsync(UserWordKey request);
-		Task UpdateWeightAsync(UpdateWordWeightRequest request);
+
+		Task<List<WordDto>> GetByIdsAsync(int userId, IReadOnlyCollection<int> wordIds);
+
+		Task<int> AddAsync(AddWordRequest request, string normalizedText, string languageCode);
+
+		Task<int> DeleteAsync(int wordId, int userId);
 	}
 }

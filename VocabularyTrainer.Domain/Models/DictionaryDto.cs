@@ -5,6 +5,7 @@ namespace VocabularyTrainer.Domain.Models
 		int Id,
 		string Name,
 		string? LanguageCode,
+		string AlgorithmCode,
 		int WordCount = 0
 	)
 	{

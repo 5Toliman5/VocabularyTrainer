@@ -1,0 +1,74 @@
+using System.Globalization;
+using VocabularyTrainer.Domain.Models;
+using VocabularyTrainer.WinApp.View;
+
+namespace VocabularyTrainer.WinApp
+{
+	public partial class MainForm : Form, IMainFormView
+	{
+		internal readonly CultureInfo[] _neutralCultures;
+		internal bool _suppressDictionaryEvents;
+
+		public IWin32Window DialogOwner => this;
+
+		public IReadOnlyList<CultureInfo> NeutralCultures => _neutralCultures;
+
+		public MainForm()
+		{
+			InitializeComponent();
+
+			_neutralCultures = CultureInfo.GetCultures(CultureTypes.NeutralCultures)
+				.Where(c => !string.IsNullOrEmpty(c.Name))
+				.OrderBy(c => c.EnglishName)
+				.ToArray();
+
+			InitializeLanguageComboBox();
+			InitializeMyWordsGrid();
+		}
+
+		public event EventHandler<string>? UserChanged;
+		public event EventHandler<int?>? TrainingDictionaryChanged;
+		public event EventHandler? AddWordRequested;
+		public event EventHandler? ShowNextWordRequested;
+		public event EventHandler? ShowTranslationRequested;
+		public event EventHandler? DeleteWordRequested;
+		public event EventHandler? AddDictionaryClickRequested;
+		public event EventHandler? UpdateDictionaryRequested;
+		public event EventHandler? DeleteDictionaryRequested;
+		public event EventHandler? MyDictionariesPageEntered;
+		public event EventHandler? MyWordsPageEntered;
+		public event EventHandler? ApplyWordFilterRequested;
+		public event EventHandler? PreviousWordPageRequested;
+		public event EventHandler? NextWordPageRequested;
+		public event EventHandler? DeleteMyWordsWordRequested;
+		public event EventHandler<string>? MyWordsSortChanged;
+		public event EventHandler? ResetWordFilterRequested;
+
+		public void ShowError(string message) =>
+			MessageBox.Show(message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+		public void LoadDictionaries(IReadOnlyList<DictionaryDto> dictionaries)
+		{
+			_suppressDictionaryEvents = true;
+
+			try
+			{
+				PopulateTrainingComboBox(dictionaries);
+				PopulateAddingComboBox(dictionaries);
+				PopulateMyDictionariesListBox(dictionaries);
+				PopulateMyWordsDictionaryFilter(dictionaries);
+				PopulateMyWordsLanguageFilter(dictionaries);
+			}
+			finally
+			{
+				_suppressDictionaryEvents = false;
+			}
+		}
+
+		internal sealed class DictionaryComboItem(int? id, string display)
+		{
+			public int? Id => id;
+			public override string ToString() => display;
+		}
+	}
+}

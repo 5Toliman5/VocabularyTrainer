@@ -1,3 +1,4 @@
+using Common.Wrappers;
 using VocabularyTrainer.Domain.Models;
 
 namespace VocabularyTrainer.Domain.Services
@@ -5,13 +6,18 @@ namespace VocabularyTrainer.Domain.Services
 	public interface IWordTrainerService
 	{
 		int GetWordsCount();
-		Task AddWordAsync(WordDto word, int dictionaryId);
-		Task DeleteCurrentWordAsync();
+		void SetUser(UserModel user);
+		void SetScope(DictionaryScope scope);
+
+		Task LoadWordsAsync();
 		WordDto? GetCurrentWord();
 		Task<WordDto?> GetNewWordAsync();
-		Task LoadWordsAsync();
-		void SetUser(UserModel user);
-		void SetDictionary(int? dictionaryId);
-		Task UpdateCurrentWordAsync(UpdateWeightType updateWeightType);
+
+		Task<Result> AddWordAsync(AddWordRequest request);
+		Task ReviewCurrentWordAsync(ReviewGrade grade);
+		Task DeleteCurrentWordAsync();
+
+		// Null when training scope is not a single dictionary (no single grade set).
+		Task<IReadOnlyList<ReviewGrade>?> GetSupportedGradesAsync();
 	}
 }

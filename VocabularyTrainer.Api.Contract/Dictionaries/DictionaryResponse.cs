@@ -5,6 +5,7 @@ namespace VocabularyTrainer.Api.Contract.Dictionaries
         int Id,
         string Name,
         string? LanguageCode,
+        string AlgorithmCode,
         int WordCount
     );
 }

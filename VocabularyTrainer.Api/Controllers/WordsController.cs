@@ -1,18 +1,14 @@
 using AutoMapper;
-using Common.Web.Controllers;
 using Microsoft.AspNetCore.Mvc;
-using VocabularyTrainer.Api.BusinessLogic.Services;
+using VocabularyTrainer.Api.Infrastructure;
 using VocabularyTrainer.Domain.Models;
-// Contract aliases — take priority over the Domain.Models namespace import for same-named types
 using AddWordRequest = VocabularyTrainer.Api.Contract.Words.AddWordRequest;
-using DeleteWordRequest = VocabularyTrainer.Api.Contract.Words.DeleteWordRequest;
-using UpdateWordWeightRequest = VocabularyTrainer.Api.Contract.Words.UpdateWordWeightRequest;
 using WordResponse = VocabularyTrainer.Api.Contract.Words.WordResponse;
 using WordPageItem = VocabularyTrainer.Api.Contract.Words.WordPageItem;
-// Domain aliases used inside method bodies when calling the mapper
+using GetWordsPagedReq = VocabularyTrainer.Api.Contract.Words.GetWordsPagedRequest;
 using DomainAddWordRequest = VocabularyTrainer.Domain.Models.AddWordRequest;
-using DomainUserWordKey = VocabularyTrainer.Domain.Models.UserWordKey;
-using DomainUpdateWeightRequest = VocabularyTrainer.Domain.Models.UpdateWordWeightRequest;
+using DomainGetWordsPagedRequest = VocabularyTrainer.Domain.Models.GetWordsPagedRequest;
+using VocabularyTrainer.Api.BusinessLogic.Services.Abstractions;
 
 namespace VocabularyTrainer.Api.Controllers
 {
@@ -27,31 +23,43 @@ namespace VocabularyTrainer.Api.Controllers
         }
 
         [HttpGet("paged")]
-        public async Task<PagedResult<WordPageItem>> GetPaged([FromQuery] GetWordsPagedRequest request)
+        public async Task<PagedResult<WordPageItem>> GetPaged([FromQuery] GetWordsPagedReq request)
         {
-            var result = await service.GetPagedAsync(request);
+            var domainRequest = mapper.Map<DomainGetWordsPagedRequest>(request);
+            var result = await service.GetPagedAsync(domainRequest);
             var items = mapper.Map<IReadOnlyList<WordPageItem>>(result.Items);
             return new PagedResult<WordPageItem>(items, result.TotalCount, result.Page, result.PageSize);
+        }
+
+        [HttpGet("{wordId:int}", Name = "GetWordById")]
+        public async Task<IActionResult> GetById(int wordId, [FromQuery] int userId)
+        {
+            var matches = await service.GetAllAsync(userId);
+            var match = matches.FirstOrDefault(w => w.Id == wordId);
+            return match is null
+                ? NotFound()
+                : Ok(mapper.Map<WordResponse>(match));
         }
 
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] AddWordRequest request)
         {
-            await service.AddAsync(mapper.Map<DomainAddWordRequest>(request));
-            return Created();
+            var result = await service.AddAsync(mapper.Map<DomainAddWordRequest>(request));
+            if (!result.Successful)
+                return ResolveFailure(result);
+
+            return CreatedAtRoute("GetWordById",
+                new { wordId = result.Value, userId = request.UserId },
+                new { id = result.Value });
         }
 
-        [HttpDelete]
-        public async Task<IActionResult> Delete([FromBody] DeleteWordRequest request)
+        [HttpDelete("{wordId:int}")]
+        public async Task<IActionResult> Delete(int wordId, [FromQuery] int userId)
         {
-            await service.DeleteAsync(mapper.Map<DomainUserWordKey>(request));
-            return NoContent();
-        }
+            var result = await service.DeleteAsync(wordId, userId);
+            if (!result.Successful)
+                return ResolveFailure(result);
 
-        [HttpPatch("weight")]
-        public async Task<IActionResult> UpdateWeight([FromBody] UpdateWordWeightRequest request)
-        {
-            await service.UpdateWeightAsync(mapper.Map<DomainUpdateWeightRequest>(request));
             return NoContent();
         }
     }

@@ -9,6 +9,8 @@ namespace VocabularyTrainer.WinApp.Infrastructure
 		public const string NoWordsFoundError = "No words have been found for the selected dictionary.";
 		public const string UserNotFoundError = "User '{0}' has not been found.";
 		public const string DictionaryNameRequired = "Dictionary name cannot be empty.";
+		public const string AddDictionaryDialogTitle = "Add Dictionary";
+		public const string ValidationCaption = "Validation";
 		public const string DuplicateDictionaryName = "A dictionary with this name already exists.";
 		public const string CannotDeleteLastDictionary = "Cannot delete the last dictionary.";
 		public const string DatabaseError = "A database error occurred. Please check your connection and try again.";

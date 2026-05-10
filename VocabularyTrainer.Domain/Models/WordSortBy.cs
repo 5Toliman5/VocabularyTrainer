@@ -7,6 +7,5 @@ namespace VocabularyTrainer.Domain.Models
 		DictionaryName,
 		Language,
 		DateAdded,
-		Weight
 	}
 }

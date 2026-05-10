@@ -4,6 +4,7 @@ namespace VocabularyTrainer.Domain.Models
 	(
 		int UserId,
 		string Name,
-		string? LanguageCode
+		string? LanguageCode,
+		string AlgorithmCode = AlgorithmCodes.Default
 	);
 }

@@ -15,6 +15,7 @@ namespace VocabularyTrainer.Domain.Entities
 		[Required, MaxLength(256)]
 		public string Password { get; set; } = null!;
 
-		public ICollection<UserWord> UserWords { get; } = [];
+		public ICollection<UserDictionary> Dictionaries { get; set; } = [];
+		public ICollection<Word> Words { get; set; } = [];
 	}
 }

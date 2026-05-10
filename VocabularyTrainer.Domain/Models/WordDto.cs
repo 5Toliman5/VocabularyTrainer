@@ -3,38 +3,18 @@ namespace VocabularyTrainer.Domain.Models
 	public record WordDto
 	{
 		public int Id { get; init; }
-		public string Value { get; init; }
-		public string Translation { get; init; }
-		public int Weight { get; init; }
+		public int UserId { get; init; }
 		public int DictionaryId { get; init; }
-		public string DictionaryName { get; init; }
-		public string? LanguageCode { get; init; }
+		public string DictionaryName { get; init; } = string.Empty;
+		public string Value { get; init; } = string.Empty;
+		public string LanguageCode { get; init; } = string.Empty;
+		public string? Notes { get; init; }
+		public IReadOnlyList<WordTranslationDto> Translations { get; init; } = [];
 		public DateTime DateAdded { get; init; }
 		public DateTime DateModified { get; init; }
-
-		public WordDto(string value, string translation)
-		{
-			Value = value;
-			Translation = translation;
-			DictionaryName = string.Empty;
-		}
-
-		public WordDto(int id, string value, string translation, int weight, int dictionaryId, string dictionaryName)
-			: this(value, translation)
-		{
-			Id = id;
-			Weight = weight;
-			DictionaryId = dictionaryId;
-			DictionaryName = dictionaryName;
-		}
-
-		public WordDto(int id, string value, string translation, int weight, int dictionaryId, string dictionaryName,
-		               string? languageCode, DateTime dateAdded, DateTime dateModified)
-			: this(id, value, translation, weight, dictionaryId, dictionaryName)
-		{
-			LanguageCode = languageCode;
-			DateAdded = dateAdded;
-			DateModified = dateModified;
-		}
+		public string PrimaryTranslation =>
+			Translations.FirstOrDefault(t => t.Kind == TranslationKind.Translation)?.Text
+				?? Translations.FirstOrDefault()?.Text
+				?? string.Empty;
 	}
 }

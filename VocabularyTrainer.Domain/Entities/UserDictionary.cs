@@ -14,8 +14,12 @@ namespace VocabularyTrainer.Domain.Entities
 		[MaxLength(10)]
 		public string? LanguageCode { get; set; }
 
-		public User User { get; set; } = null!;
+		[Required]
+		public int AlgorithmId { get; set; }
 
-		public ICollection<UserWord> UserWords { get; set; } = [];
+		public User User { get; set; } = null!;
+		public Algorithm Algorithm { get; set; } = null!;
+
+		public ICollection<Word> Words { get; set; } = [];
 	}
 }

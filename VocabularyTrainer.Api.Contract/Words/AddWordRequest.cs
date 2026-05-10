@@ -2,9 +2,10 @@ namespace VocabularyTrainer.Api.Contract.Words
 {
     public record AddWordRequest
     (
-        string Value,
-        string Translation,
         int UserId,
-        int DictionaryId
+        int DictionaryId,
+        string Value,
+        IReadOnlyList<WordTranslationDto> Translations,
+        string? Notes = null
     );
 }

@@ -14,7 +14,7 @@ namespace VocabularyTrainer.WinApp.Infrastructure.AppStart
 			ConfigureLogging(services, config.LogsDirectory);
 
 			services.AddApiClient(config.ApiBaseUrl);
-			services.AddVocabularyTrainer();
+			services.AddVocabularyTrainerForApiClient();
 
 			return services;
 		}

@@ -1,26 +1,26 @@
-using Dapper;
-using Common.Wrappers;
 using Microsoft.Data.SqlClient;
-using VocabularyTrainer.DataAccess.SqlQueries;
+using Microsoft.EntityFrameworkCore;
+using VocabularyTrainer.DataAccess;
+using VocabularyTrainer.Domain.Entities;
 using VocabularyTrainer.Domain.Exceptions;
 using VocabularyTrainer.Domain.Models;
 using VocabularyTrainer.Domain.Repositories;
 
 namespace VocabularyTrainer.DataAccess.Repositories
 {
-	public class DictionaryRepository(string connectionString) : IDictionaryRepository
+	public class DictionaryRepository(IVocabularyTrainerDbContext dbContext) : IDictionaryRepository
 	{
-		private const int SqlUniqueConstraintViolation = 2627;
-		private const int SqlUniqueIndexViolation = 2601;
-
 		public async Task<List<DictionaryDto>> GetAllAsync(int userId)
 		{
 			try
 			{
-				await using var connection = new SqlConnection(connectionString);
-				var result = await connection.QueryAsync<DictionaryDto>(
-					DictionarySqlQueries.SelectAllByUser, new { UserId = userId });
-				return result.ToList();
+				return await dbContext.Dictionaries
+					.AsNoTracking()
+					.Where(d => d.UserId == userId)
+					.OrderBy(d => d.Name)
+					.Select(d => new DictionaryDto(
+						d.Id, d.Name, d.LanguageCode, d.Algorithm.Code, d.Words.Count))
+					.ToListAsync();
 			}
 			catch (SqlException ex)
 			{
@@ -28,17 +28,42 @@ namespace VocabularyTrainer.DataAccess.Repositories
 			}
 		}
 
-		public async Task<Result<int>> AddAsync(AddDictionaryRequest request)
+		public async Task<DictionaryDto?> GetByIdAsync(int dictionaryId, int userId)
 		{
 			try
 			{
-				await using var connection = new SqlConnection(connectionString);
-				var id = await connection.ExecuteScalarAsync<int>(DictionarySqlQueries.Insert, request);
-				return Result<int>.Success(id);
+				return await dbContext.Dictionaries
+					.AsNoTracking()
+					.Where(d => d.Id == dictionaryId && d.UserId == userId)
+					.Select(d => new DictionaryDto(
+						d.Id, d.Name, d.LanguageCode, d.Algorithm.Code, d.Words.Count))
+					.SingleOrDefaultAsync();
 			}
-			catch (SqlException ex) when (ex.Number is SqlUniqueConstraintViolation or SqlUniqueIndexViolation)
+			catch (SqlException ex)
 			{
-				return Result<int>.Failure("A dictionary with this name already exists.");
+				throw new DatabaseException("Failed to retrieve dictionary from the database.", ex);
+			}
+		}
+
+		public async Task<int> AddAsync(AddDictionaryRequest request, int algorithmPersistenceId)
+		{
+			var entity = new UserDictionary
+			{
+				UserId = request.UserId,
+				Name = request.Name,
+				LanguageCode = request.LanguageCode,
+				AlgorithmId = algorithmPersistenceId,
+			};
+
+			try
+			{
+				dbContext.Dictionaries.Add(entity);
+				await dbContext.SaveChangesAsync();
+				return entity.Id;
+			}
+			catch (DbUpdateException ex) when (SqlServerDbErrors.IsUniqueViolation(ex))
+			{
+				throw new DuplicateKeyException("A dictionary with this name already exists.", ex);
 			}
 			catch (SqlException ex)
 			{
@@ -46,17 +71,20 @@ namespace VocabularyTrainer.DataAccess.Repositories
 			}
 		}
 
-		public async Task<Result> UpdateAsync(UpdateDictionaryRequest request)
+		public async Task<int> UpdateAsync(UpdateDictionaryRequest request, int algorithmPersistenceId)
 		{
 			try
 			{
-				await using var connection = new SqlConnection(connectionString);
-				await connection.ExecuteAsync(DictionarySqlQueries.Update, request);
-				return Result.Success();
+				return await dbContext.Dictionaries
+					.Where(d => d.Id == request.DictionaryId && d.UserId == request.UserId)
+					.ExecuteUpdateAsync(setters => setters
+						.SetProperty(d => d.Name, request.Name)
+						.SetProperty(d => d.LanguageCode, request.LanguageCode)
+						.SetProperty(d => d.AlgorithmId, algorithmPersistenceId));
 			}
-			catch (SqlException ex) when (ex.Number is SqlUniqueConstraintViolation or SqlUniqueIndexViolation)
+			catch (DbUpdateException ex) when (SqlServerDbErrors.IsUniqueViolation(ex))
 			{
-				return Result.Failure("A dictionary with this name already exists.");
+				throw new DuplicateKeyException("A dictionary with this name already exists.", ex);
 			}
 			catch (SqlException ex)
 			{
@@ -68,8 +96,9 @@ namespace VocabularyTrainer.DataAccess.Repositories
 		{
 			try
 			{
-				await using var connection = new SqlConnection(connectionString);
-				await connection.ExecuteAsync(DictionarySqlQueries.Delete, new { DictionaryId = dictionaryId, UserId = userId });
+				await dbContext.Dictionaries
+					.Where(d => d.Id == dictionaryId && d.UserId == userId)
+					.ExecuteDeleteAsync();
 			}
 			catch (SqlException ex)
 			{

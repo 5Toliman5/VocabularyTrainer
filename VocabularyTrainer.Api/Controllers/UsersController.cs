@@ -1,8 +1,8 @@
 using AutoMapper;
-using Common.Web.Controllers;
 using Microsoft.AspNetCore.Mvc;
+using VocabularyTrainer.Api.BusinessLogic.Services.Abstractions;
 using VocabularyTrainer.Api.Contract.Users;
-using VocabularyTrainer.Api.BusinessLogic.Services;
+using VocabularyTrainer.Api.Infrastructure;
 
 namespace VocabularyTrainer.Api.Controllers
 {

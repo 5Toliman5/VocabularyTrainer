@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
@@ -14,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Common.Web\Common.Web.csproj" />
+    <ProjectReference Include="..\Common\Common.csproj" />
     <ProjectReference Include="..\VocabularyTrainer.Api.BusinessLogic\VocabularyTrainer.Api.BusinessLogic.csproj" />
     <ProjectReference Include="..\VocabularyTrainer.Api.Contract\VocabularyTrainer.Api.Contract.csproj" />
     <ProjectReference Include="..\VocabularyTrainer.Domain\VocabularyTrainer.Domain.csproj" />

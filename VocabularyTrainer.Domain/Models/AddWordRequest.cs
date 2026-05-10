@@ -3,8 +3,9 @@ namespace VocabularyTrainer.Domain.Models
 	public record AddWordRequest
 	(
 		string Value,
-		string Translation,
+		IReadOnlyList<WordTranslationDto> Translations,
 		int UserId,
-		int DictionaryId
+		int DictionaryId,
+		string? Notes = null
 	);
 }

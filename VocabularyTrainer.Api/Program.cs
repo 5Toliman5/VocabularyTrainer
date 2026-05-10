@@ -1,6 +1,7 @@
 using System.Reflection;
 using VocabularyTrainer.Api.BusinessLogic;
 using VocabularyTrainer.Api.Middleware;
+using VocabularyTrainer.BusinessLogic.Services.Algorithms;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,11 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+
+await using (var scope = app.Services.CreateAsyncScope())
+{
+	await scope.ServiceProvider.GetRequiredService<AlgorithmsSeeder>().SeedAsync();
+}
 
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 

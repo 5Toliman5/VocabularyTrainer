@@ -1,38 +1,49 @@
 using AutoMapper;
 using VocabularyTrainer.Domain.Models;
 using CAddWordReq = VocabularyTrainer.Api.Contract.Words.AddWordRequest;
-using CDeleteWordReq = VocabularyTrainer.Api.Contract.Words.DeleteWordRequest;
-using CUpdateWeightReq = VocabularyTrainer.Api.Contract.Words.UpdateWordWeightRequest;
-using CWeightUpdateType = VocabularyTrainer.Api.Contract.Words.WeightUpdateType;
+using CReviewWordReq = VocabularyTrainer.Api.Contract.Words.ReviewWordRequest;
+using CReviewGrade = VocabularyTrainer.Api.Contract.Words.ReviewGrade;
+using CTranslationKind = VocabularyTrainer.Api.Contract.Words.TranslationKind;
+using CWordTranslationDto = VocabularyTrainer.Api.Contract.Words.WordTranslationDto;
 using CWordResponse = VocabularyTrainer.Api.Contract.Words.WordResponse;
 using CWordPageItem = VocabularyTrainer.Api.Contract.Words.WordPageItem;
+using CWordSortBy = VocabularyTrainer.Api.Contract.Words.WordSortBy;
+using CGetWordsPagedReq = VocabularyTrainer.Api.Contract.Words.GetWordsPagedRequest;
 using CAddDictReq = VocabularyTrainer.Api.Contract.Dictionaries.AddDictionaryRequest;
 using CUpdateDictReq = VocabularyTrainer.Api.Contract.Dictionaries.UpdateDictionaryRequest;
 using CDictResponse = VocabularyTrainer.Api.Contract.Dictionaries.DictionaryResponse;
 using CUserResponse = VocabularyTrainer.Api.Contract.Users.UserResponse;
+using CAlgorithmInfoResp = VocabularyTrainer.Api.Contract.Algorithms.AlgorithmInfoResponse;
+using CAlgorithmCost = VocabularyTrainer.Api.Contract.Algorithms.AlgorithmCost;
 
 namespace VocabularyTrainer.Api
 {
-    public class MappingProfile : Profile
-    {
-        public MappingProfile()
-        {
-            CreateMap<CAddWordReq, AddWordRequest>();
-            CreateMap<CDeleteWordReq, UserWordKey>();
-            CreateMap<CWeightUpdateType, UpdateWeightType>();
-            CreateMap<CUpdateWeightReq, UpdateWordWeightRequest>();
+	public class MappingProfile : Profile
+	{
+		public MappingProfile()
+		{
+			CreateMap<CTranslationKind, TranslationKind>().ReverseMap();
+			CreateMap<CReviewGrade, ReviewGrade>().ReverseMap();
+			CreateMap<CWordSortBy, WordSortBy>().ReverseMap();
 
-            CreateMap<WordDto, CWordResponse>();
-            CreateMap<WordDto, CWordPageItem>();
+			CreateMap<CWordTranslationDto, WordTranslationDto>().ReverseMap();
 
-            CreateMap<CAddDictReq, AddDictionaryRequest>();
-            CreateMap<CUpdateDictReq, UpdateDictionaryRequest>()
-                .ConstructUsing((src, ctx) => new UpdateDictionaryRequest(
-                    (int)ctx.Items["dictionaryId"], src.UserId, src.Name, src.LanguageCode));
+			CreateMap<CAddWordReq, AddWordRequest>();
 
-            CreateMap<DictionaryDto, CDictResponse>();
+			CreateMap<WordDto, CWordResponse>();
+			CreateMap<WordDto, CWordPageItem>()
+				.ForCtorParam("PrimaryTranslation", o => o.MapFrom(s => s.PrimaryTranslation));
 
-            CreateMap<UserModel, CUserResponse>();
-        }
-    }
+			CreateMap<CGetWordsPagedReq, GetWordsPagedRequest>();
+
+			CreateMap<CAddDictReq, AddDictionaryRequest>();
+
+			CreateMap<DictionaryDto, CDictResponse>();
+
+			CreateMap<UserModel, CUserResponse>();
+
+			CreateMap<AlgorithmCost, CAlgorithmCost>().ReverseMap();
+			CreateMap<AlgorithmInfo, CAlgorithmInfoResp>();
+		}
+	}
 }

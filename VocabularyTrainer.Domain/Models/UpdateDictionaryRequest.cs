@@ -5,6 +5,7 @@ namespace VocabularyTrainer.Domain.Models
 		int DictionaryId,
 		int UserId,
 		string Name,
-		string? LanguageCode
+		string? LanguageCode,
+		string AlgorithmCode
 	);
 }

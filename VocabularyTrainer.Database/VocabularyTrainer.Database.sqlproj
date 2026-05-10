@@ -59,8 +59,11 @@
   </ItemGroup>
   <ItemGroup>
     <Build Include="Users.sql" />
-    <Build Include="Words.sql" />
+    <Build Include="Algorithms.sql" />
     <Build Include="Dictionaries.sql" />
-    <Build Include="UserWords.sql" />
+    <Build Include="Words.sql" />
+    <Build Include="WordTranslations.sql" />
+    <Build Include="WordWeightBasedParams.sql" />
+    <Build Include="WordSm2Params.sql" />
   </ItemGroup>
 </Project>
