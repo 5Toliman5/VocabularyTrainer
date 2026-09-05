@@ -7,7 +7,8 @@ namespace VocabularyTrainer.Domain.Services
 	{
 		int GetWordsCount();
 		void SetUser(UserModel user);
-		void SetScope(DictionaryScope scope);
+		// Returns false, without touching the current word/session, when scope is unchanged.
+		bool SetScope(DictionaryScope scope);
 
 		Task LoadWordsAsync();
 		WordDto? GetCurrentWord();

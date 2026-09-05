@@ -22,7 +22,7 @@ namespace VocabularyTrainer.WinApp.Presenter.Main
 
 				await RefreshDictionariesAsync();
 
-				await ShowNextWordCoreAsync();
+				await ShowNextWordAsync();
 			});
 		}
 
@@ -32,15 +32,18 @@ namespace VocabularyTrainer.WinApp.Presenter.Main
 			{
 				if (_user is null) return;
 
-				_wordTrainerService.SetScope(DictionaryScope.FromNullableId(dictionaryId));
+				if (!_wordTrainerService.SetScope(DictionaryScope.FromNullableId(dictionaryId)))
+				{
+					return;
+				}
 
-				await ShowNextWordCoreAsync();
+				await ShowNextWordAsync();
 			});
 		}
 
 		private async void OnShowNextWordRequested(object? sender, EventArgs e)
 		{
-			await ExecuteIfFreeAsync(ShowNextWordCoreAsync);
+			await ExecuteIfFreeAsync(ShowNextWordAsync);
 		}
 
 		private async void OnShowTranslationRequested(object? sender, EventArgs e)
@@ -66,11 +69,11 @@ namespace VocabularyTrainer.WinApp.Presenter.Main
 				if (_wordTrainerService.GetCurrentWord() is null) return;
 
 				await _wordTrainerService.DeleteCurrentWordAsync();
-				await ShowNextWordCoreAsync();
+				await ShowNextWordAsync();
 			});
 		}
 
-		private async Task ShowNextWordCoreAsync()
+		private async Task ShowNextWordAsync()
 		{
 			_view.ClearShowWordOutput();
 

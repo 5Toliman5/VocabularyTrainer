@@ -13,18 +13,19 @@ namespace VocabularyTrainer.BusinessLogic.Services
 
 		public void SetUser(UserModel user) => _session = new TrainingSession(user);
 
-		public void SetScope(DictionaryScope scope)
+		public bool SetScope(DictionaryScope scope)
 		{
 			var session = CurrentSession;
 
 			if (session.Scope == scope)
 			{
-				return;
+				return false;
 			}
 
 			session.Scope = scope;
 			session.Words.Clear();
 			session.CurrentWord = null;
+			return true;
 		}
 
 		public int GetWordsCount() => CurrentSession.Words.Count;
