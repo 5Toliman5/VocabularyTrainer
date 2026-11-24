@@ -12,6 +12,7 @@ namespace VocabularyTrainer.Api.BusinessLogic
 		{
 			services.AddVocabularyTrainerForApi(connectionString);
 
+			services.AddScoped<IApiAuthService, ApiAuthService>();
 			services.AddScoped<IApiUserService, ApiUserService>();
 			services.AddScoped<IApiDictionaryService, ApiDictionaryService>();
 			services.AddScoped<IApiWordService, ApiWordService>();

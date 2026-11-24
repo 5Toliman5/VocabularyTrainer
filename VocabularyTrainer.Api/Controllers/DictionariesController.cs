@@ -12,16 +12,16 @@ namespace VocabularyTrainer.Api.Controllers
     public class DictionariesController(IApiDictionaryService service, IMapper mapper) : BaseApiController
     {
         [HttpGet]
-        public async Task<IEnumerable<DictionaryResponse>> GetAll([FromQuery] int userId)
+        public async Task<IEnumerable<DictionaryResponse>> GetAll()
         {
-            var dictionaries = await service.GetAllAsync(userId);
+            var dictionaries = await service.GetAllAsync(CurrentUserId);
             return mapper.Map<IEnumerable<DictionaryResponse>>(dictionaries);
         }
 
         [HttpGet("{dictionaryId:int}", Name = "GetDictionaryById")]
-        public async Task<IActionResult> GetById(int dictionaryId, [FromQuery] int userId)
+        public async Task<IActionResult> GetById(int dictionaryId)
         {
-            var dict = await service.GetByIdAsync(dictionaryId, userId);
+            var dict = await service.GetByIdAsync(dictionaryId, CurrentUserId);
             return dict is null
                 ? NotFound()
                 : Ok(mapper.Map<DictionaryResponse>(dict));
@@ -30,21 +30,20 @@ namespace VocabularyTrainer.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] AddDictionaryRequest request)
         {
-            var result = await service.AddAsync(mapper.Map<DomainAddDictRequest>(request));
+            var domainRequest = new DomainAddDictRequest(CurrentUserId, request.Name, request.LanguageCode, request.AlgorithmCode);
+            var result = await service.AddAsync(domainRequest);
             if (!result.Successful)
                 return ResolveFailure(result);
 
             var response = mapper.Map<DictionaryResponse>(result.Value);
-            return CreatedAtRoute("GetDictionaryById",
-                new { dictionaryId = response.Id, userId = request.UserId },
-                response);
+            return CreatedAtRoute("GetDictionaryById", new { dictionaryId = response.Id }, response);
         }
 
         [HttpPut("{dictionaryId:int}")]
         public async Task<IActionResult> Update(int dictionaryId, [FromBody] UpdateDictionaryRequest request)
         {
             var domainRequest = new DomainUpdateDictRequest(
-                dictionaryId, request.UserId, request.Name, request.LanguageCode, request.AlgorithmCode);
+                dictionaryId, CurrentUserId, request.Name, request.LanguageCode, request.AlgorithmCode);
 
             var result = await service.UpdateAsync(domainRequest);
             if (!result.Successful)
@@ -54,9 +53,9 @@ namespace VocabularyTrainer.Api.Controllers
         }
 
         [HttpDelete("{dictionaryId:int}")]
-        public async Task<IActionResult> Delete(int dictionaryId, [FromQuery] int userId)
+        public async Task<IActionResult> Delete(int dictionaryId)
         {
-            await service.DeleteAsync(dictionaryId, userId);
+            await service.DeleteAsync(dictionaryId, CurrentUserId);
             return NoContent();
         }
     }

@@ -1,4 +1,4 @@
 namespace VocabularyTrainer.Api.Contract.Words
 {
-    public record ReviewWordRequest(int UserId, int DictionaryId, ReviewGrade Grade);
+    public record ReviewWordRequest(int DictionaryId, ReviewGrade Grade);
 }
