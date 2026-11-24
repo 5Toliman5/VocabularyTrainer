@@ -7,8 +7,13 @@ namespace VocabularyTrainer.WinApp.ApiClient
 {
 	public static class ApiFailures
 	{
-		// HttpClient reports its own timeout as TaskCanceledException, not HttpRequestException.
-		public static bool IsUnreachable(Exception exception) => exception is HttpRequestException or TaskCanceledException;
+		// No response at all: connection failure (HttpRequestException without a status) or HttpClient's own timeout,
+		// which surfaces as TaskCanceledException. Error responses (404, 500, ...) are not "unreachable".
+		public static bool IsUnreachable(Exception exception) =>
+			exception is TaskCanceledException or HttpRequestException { StatusCode: null };
+
+		// Any failed HTTP call, with or without a response.
+		public static bool IsHttpFailure(Exception exception) => exception is HttpRequestException or TaskCanceledException;
 
 		// Null for 2xx; a Result for expected API failures; throws for anything unexpected.
 		internal static async Task<Result?> ToFailureAsync(HttpResponseMessage response)

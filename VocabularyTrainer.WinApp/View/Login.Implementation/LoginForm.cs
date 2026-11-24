@@ -111,14 +111,14 @@ namespace VocabularyTrainer.WinApp.View
 			_toolTip.SetToolTip(_registerName, "How the app should call you. You can change it later on the Account tab.");
 			_toolTip.SetToolTip(_registerEmail, "Your email. It is used to sign in and to recover the password.");
 			_toolTip.SetToolTip(registerSendCodeButton, "Email a 6-digit confirmation code to the address above.");
-			_toolTip.SetToolTip(_registerCode, "The 6-digit code from the email. It is valid for 10 minutes.");
+			_toolTip.SetToolTip(_registerCode, "The 6-digit code from the email. It expires after a short time; the email says when.");
 			_toolTip.SetToolTip(_registerPassword, "At least 8 characters.");
 			_toolTip.SetToolTip(_registerPasswordConfirmation, "Type the password again to avoid typos.");
 			_toolTip.SetToolTip(registerButton, "Create the account and sign in.");
 
 			_toolTip.SetToolTip(_resetEmail, "The email of your account.");
 			_toolTip.SetToolTip(resetSendCodeButton, "Email a 6-digit code to reset the password.");
-			_toolTip.SetToolTip(_resetCode, "The 6-digit code from the email. It is valid for 10 minutes.");
+			_toolTip.SetToolTip(_resetCode, "The 6-digit code from the email. It expires after a short time; the email says when.");
 			_toolTip.SetToolTip(_resetNewPassword, "At least 8 characters. All devices will be signed out.");
 			_toolTip.SetToolTip(resetButton, "Set the new password, then sign in with it.");
 		}

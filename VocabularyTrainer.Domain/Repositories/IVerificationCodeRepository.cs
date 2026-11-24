@@ -4,7 +4,11 @@ namespace VocabularyTrainer.Domain.Repositories
 {
 	public interface IVerificationCodeRepository
 	{
-		Task AddAsync(NewVerificationCode code);
+		Task<int> AddAsync(NewVerificationCode code);
+
+		Task DeleteAsync(int codeId);
+
+		Task<int> DeleteExpiredBeforeAsync(DateTime threshold);
 
 		Task<VerificationCodeInfo?> GetLatestAsync(string channel, string target, VerificationPurpose purpose);
 

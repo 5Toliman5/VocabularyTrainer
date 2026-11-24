@@ -62,8 +62,18 @@ namespace VocabularyTrainer.BusinessLogic.Services.Auth
 				now + _options.VerificationCodeLifetime
 			);
 
-			await _repository.AddAsync(record);
-			await sender.SendAsync(target, code, purpose, _options.VerificationCodeLifetime);
+			var codeId = await _repository.AddAsync(record);
+
+			try
+			{
+				await sender.SendAsync(target, code, purpose, _options.VerificationCodeLifetime);
+			}
+			catch
+			{
+				// An undelivered code must not trigger the resend cooldown or count toward the hourly cap.
+				await _repository.DeleteAsync(codeId);
+				throw;
+			}
 
 			return Result.Success();
 		}

@@ -69,13 +69,16 @@ namespace VocabularyTrainer.DataAccess.Repositories
 		{
 			try
 			{
-				// Check and delete in one statement: two concurrent unlinks cannot both see "2 left" and remove both.
-				// Relies on locking READ COMMITTED (READ_COMMITTED_SNAPSHOT is off): the second statement's count
-				// waits for the first delete to commit. Worst case under contention is a deadlock victim, never zero identities.
-				return await dbContext.UserIdentities
-					.Where(i => i.Id == identityId && i.UserId == userId)
-					.Where(_ => dbContext.UserIdentities.Count(other => other.UserId == userId) > 1)
-					.ExecuteDeleteAsync();
+				// Check and delete in one statement so two concurrent unlinks cannot both see "2 left".
+				// Raw SQL only for the lock hints: UPDLOCK + HOLDLOCK make the count take update locks on the
+				// user's rows, so a second unlink waits for the first to commit and then sees the real count,
+				// regardless of READ_COMMITTED_SNAPSHOT (on by default in Azure SQL).
+				return await dbContext.Database.ExecuteSqlInterpolatedAsync($"""
+					DELETE FROM dbo.UserIdentities
+					WHERE ID = {identityId}
+					  AND UserId = {userId}
+					  AND (SELECT COUNT(*) FROM dbo.UserIdentities WITH (UPDLOCK, HOLDLOCK) WHERE UserId = {userId}) > 1
+					""");
 			}
 			catch (SqlException ex)
 			{

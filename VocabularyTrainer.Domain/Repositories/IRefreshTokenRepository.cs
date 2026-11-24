@@ -14,5 +14,7 @@ namespace VocabularyTrainer.Domain.Repositories
 		Task RevokeAsync(int tokenId);
 
 		Task RevokeAllForUserAsync(int userId, byte[]? exceptTokenHash = null);
+
+		Task<int> DeleteExpiredBeforeAsync(DateTime threshold);
 	}
 }

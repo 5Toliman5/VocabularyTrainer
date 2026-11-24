@@ -68,6 +68,7 @@ namespace VocabularyTrainer.BusinessLogic
 			services.AddScoped<IExternalAuthProviderRegistry, ExternalAuthProviderRegistry>();
 			services.AddScoped<IAuthService, AuthService>();
 			services.AddScoped<IUserService, UserService>();
+			services.AddScoped<IAuthMaintenanceService, AuthMaintenanceService>();
 
 			return services;
 		}
