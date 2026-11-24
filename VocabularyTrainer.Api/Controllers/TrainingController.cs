@@ -15,11 +15,10 @@ namespace VocabularyTrainer.Api.Controllers
 	{
 		[HttpGet("candidates")]
 		public async Task<IActionResult> GetCandidates(
-			[FromQuery] int userId,
 			[FromQuery] DictionaryScope scope,
 			[FromQuery] int limit = WordConstants.DefaultCandidateBatchSize)
 		{
-			var result = await service.GetCandidatesAsync(userId, scope, limit);
+			var result = await service.GetCandidatesAsync(CurrentUserId, scope, limit);
 			if (!result.Successful)
 				return ResolveFailure(result);
 
@@ -31,7 +30,7 @@ namespace VocabularyTrainer.Api.Controllers
 		{
 			var domainRequest = new VocabularyTrainer.Domain.Models.ReviewWordRequest(
 				wordId,
-				request.UserId,
+				CurrentUserId,
 				request.DictionaryId,
 				mapper.Map<DomainReviewGrade>(request.Grade));
 
@@ -43,11 +42,9 @@ namespace VocabularyTrainer.Api.Controllers
 		}
 
 		[HttpGet("supported-grades")]
-		public async Task<IActionResult> GetSupportedGrades(
-			[FromQuery] int dictionaryId,
-			[FromQuery] int userId)
+		public async Task<IActionResult> GetSupportedGrades([FromQuery] int dictionaryId)
 		{
-			var result = await service.GetSupportedGradesAsync(dictionaryId, userId);
+			var result = await service.GetSupportedGradesAsync(dictionaryId, CurrentUserId);
 			if (!result.Successful)
 				return ResolveFailure(result);
 

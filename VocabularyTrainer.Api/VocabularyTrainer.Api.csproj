@@ -1,14 +1,16 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
+    <UserSecretsId>62891430-3bf8-4dc5-a065-ff54b8956d01</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="14.0.0" NoWarn="NU1903" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.7" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
   </ItemGroup>
 
@@ -17,6 +19,7 @@
     <ProjectReference Include="..\VocabularyTrainer.Api.BusinessLogic\VocabularyTrainer.Api.BusinessLogic.csproj" />
     <ProjectReference Include="..\VocabularyTrainer.Api.Contract\VocabularyTrainer.Api.Contract.csproj" />
     <ProjectReference Include="..\VocabularyTrainer.Domain\VocabularyTrainer.Domain.csproj" />
+    <ProjectReference Include="..\VocabularyTrainer.Infrastructure\VocabularyTrainer.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

@@ -10,6 +10,10 @@
     - Stops all of IIS (iisreset /stop) so inetpub and staging are not locked by w3wp, mirrors
       into the physical path, then starts IIS again.
     - Creates the IIS application pool and site if they do not exist; updates them otherwise.
+    - Copies the API's user-secrets (connection string, JWT signing key, SMTP password, ...) into
+      environment variables of the application pool. They live in applicationHost.config, which only
+      Administrators and SYSTEM can read, so secrets never land in inetpub or in the repository.
+      The app pool identity cannot read the deploying user's user-secrets itself.
     - Starts everything back up after deployment.
 
 .PREREQUISITES
@@ -174,6 +178,68 @@ function Set-PublishedWebConfigAspNetCoreEnvironment {
     $doc.Save($webConfigPath)
 }
 
+function Get-ApiUserSecrets {
+    param([Parameter(Mandatory = $true)][string]$ProjectPath)
+
+    [xml]$project = Get-Content -LiteralPath $ProjectPath
+    $userSecretsId = ($project.Project.PropertyGroup | ForEach-Object { $_.UserSecretsId } | Where-Object { $_ } | Select-Object -First 1)
+    if ([string]::IsNullOrWhiteSpace($userSecretsId)) {
+        throw "UserSecretsId is not set in $ProjectPath."
+    }
+
+    $secretsPath = Join-Path $env:APPDATA "Microsoft\UserSecrets\$userSecretsId\secrets.json"
+    if (-not (Test-Path -LiteralPath $secretsPath)) {
+        throw "No user-secrets found at $secretsPath. Set them with 'dotnet user-secrets set <key> <value> --project VocabularyTrainer.Api'."
+    }
+
+    $secrets = Get-Content -LiteralPath $secretsPath -Raw | ConvertFrom-Json
+    $result = [ordered]@{}
+    foreach ($property in $secrets.PSObject.Properties) {
+        # Configuration key "Section:Key" becomes environment variable "Section__Key".
+        $result[$property.Name -replace ':', '__'] = [string]$property.Value
+    }
+
+    return $result
+}
+
+function Set-AppPoolEnvironmentVariables {
+    param(
+        [Parameter(Mandatory = $true)][string]$PoolName,
+        [Parameter(Mandatory = $true)][System.Collections.IDictionary]$Variables
+    )
+
+    foreach ($name in $Variables.Keys) {
+        $value = $Variables[$name]
+        if ($value.Contains("'")) {
+            throw "Secret '$name' contains a single quote, which appcmd cannot pass. Change the value or set it manually in IIS."
+        }
+
+        Invoke-AppCmd -Arguments @(
+            'set', 'config', '-section:system.applicationHost/applicationPools',
+            "/-[name='$PoolName'].environmentVariables.[name='$name']",
+            '/commit:apphost'
+        ) -AllowFailure | Out-Null
+
+        Invoke-AppCmd -Arguments @(
+            'set', 'config', '-section:system.applicationHost/applicationPools',
+            "/+[name='$PoolName'].environmentVariables.[name='$name',value='$value']",
+            '/commit:apphost'
+        ) | Out-Null
+
+        Write-Host "  $name" -ForegroundColor Green
+    }
+}
+
+# --- Preflight: secrets (read before anything is stopped, so a missing secret aborts with the old site running) ---
+Write-Step "Reading API user-secrets..."
+$apiSecrets = Get-ApiUserSecrets -ProjectPath $ProjectPath
+foreach ($required in @('ConnectionStrings__Default', 'Jwt__SigningKey')) {
+    if (-not $apiSecrets.Contains($required) -or [string]::IsNullOrWhiteSpace($apiSecrets[$required])) {
+        throw "Required secret '$($required -replace '__', ':')' is not set in user-secrets."
+    }
+}
+Write-Host "  Found: $($apiSecrets.Keys -join ', ')" -ForegroundColor Green
+
 # --- Preflight: ASP.NET Core Module v2 (ANCM) ---
 Write-Step "Checking ASP.NET Core Module registration..."
 $ancmCandidates = @(
@@ -269,6 +335,9 @@ Invoke-AppCmd -Arguments @(
     '/processModel.idleTimeout:00:00:00'
 ) | Out-Null
 
+Write-Step "Setting secrets as environment variables of application pool '$AppPoolName'..."
+Set-AppPoolEnvironmentVariables -PoolName $AppPoolName -Variables $apiSecrets
+
 # --- Site ---
 if (-not (Test-IisSiteExists -Name $SiteName)) {
     Write-Step "Creating IIS site '$SiteName' on port $Port..."
@@ -331,6 +400,11 @@ Invoke-AppCmd -Arguments @('start', 'apppool', $AppPoolName) -AllowFailure | Out
 
 Write-Step "Starting site '$SiteName'..."
 Invoke-AppCmd -Arguments @('start', 'site', $SiteName) -AllowFailure | Out-Null
+
+# iisreset /start may already have auto-started the pool (AlwaysRunning) before the environment
+# variables above were written; recycling guarantees the worker runs with the current secrets.
+Write-Step "Recycling application pool '$AppPoolName'..."
+Invoke-AppCmd -Arguments @('recycle', 'apppool', $AppPoolName) -AllowFailure | Out-Null
 
 Write-Host ""
 Write-Host "Deployment complete." -ForegroundColor Green
