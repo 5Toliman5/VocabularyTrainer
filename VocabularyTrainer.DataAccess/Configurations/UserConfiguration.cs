@@ -12,12 +12,10 @@ namespace VocabularyTrainer.DataAccess.Configurations
 			builder.HasKey(u => u.Id);
 			builder.Property(u => u.Id).HasColumnName("ID");
 
-			builder.Property(u => u.Name)    .HasMaxLength(64) .IsRequired();
-			builder.Property(u => u.Login)   .HasMaxLength(32) .IsRequired();
-			builder.Property(u => u.Password).HasMaxLength(256).IsRequired();
-			builder.Property(u => u.Info);
-
-			builder.HasIndex(u => u.Name).IsUnique();
+			builder.Property(u => u.DisplayName).HasMaxLength(64).IsRequired();
+			builder.Property(u => u.PasswordHash).HasMaxLength(256);
+			builder.Property(u => u.CreatedAt).IsRequired();
+			builder.Property(u => u.IsBlocked).IsRequired();
 		}
 	}
 }

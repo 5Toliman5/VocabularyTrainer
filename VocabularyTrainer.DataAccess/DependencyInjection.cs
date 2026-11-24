@@ -13,6 +13,9 @@ namespace VocabularyTrainer.DataAccess
 			services.AddScoped<IVocabularyTrainerDbContext>(sp => sp.GetRequiredService<VocabularyTrainerDbContext>());
 
 			services.AddScoped<IUserRepository, UserRepository>();
+			services.AddScoped<IUserIdentityRepository, UserIdentityRepository>();
+			services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+			services.AddScoped<IVerificationCodeRepository, VerificationCodeRepository>();
 			services.AddScoped<IAlgorithmRepository, AlgorithmRepository>();
 			services.AddScoped<IDictionaryRepository, DictionaryRepository>();
 			services.AddScoped<IWordRepository, WordRepository>();

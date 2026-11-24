@@ -5,16 +5,17 @@ namespace VocabularyTrainer.Domain.Entities
 	public class User : EntityBase
 	{
 		[Required, MaxLength(64)]
-		public string Name { get; set; } = null!;
+		public string DisplayName { get; set; } = null!;
 
-		public string? Info { get; set; }
+		// Null for accounts created through an external provider that never set a password.
+		[MaxLength(256)]
+		public string? PasswordHash { get; set; }
 
-		[Required, MaxLength(32)]
-		public string Login { get; set; } = null!;
+		public DateTime CreatedAt { get; set; }
 
-		[Required, MaxLength(256)]
-		public string Password { get; set; } = null!;
+		public bool IsBlocked { get; set; }
 
+		public ICollection<UserIdentity> Identities { get; set; } = [];
 		public ICollection<UserDictionary> Dictionaries { get; set; } = [];
 		public ICollection<Word> Words { get; set; } = [];
 	}

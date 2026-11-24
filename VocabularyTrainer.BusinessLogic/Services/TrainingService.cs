@@ -45,16 +45,19 @@ namespace VocabularyTrainer.BusinessLogic.Services
 				return [];
 			}
 
-			var candidateBatchTasks = userDictionaries
-				.Where(dictionary => registry.IsKnown(dictionary.AlgorithmCode))
-				.Select(dictionary => registry.GetByCode(dictionary.AlgorithmCode)
-					.GetTrainingCandidatesAsync(userId, dictionary.Id, limit))
-				.ToList();
+			var knownDictionaries = userDictionaries.Where(dictionary => registry.IsKnown(dictionary.AlgorithmCode)).ToList();
+			var candidateBatches = new List<List<WordDto>>(capacity: knownDictionaries.Count);
 
-			var candidateBatches = await Task.WhenAll(candidateBatchTasks);
+			// Sequential on purpose: all algorithms share the request-scoped DbContext, which forbids concurrent queries.
+			foreach (var dictionary in knownDictionaries)
+			{
+				var algorithm = registry.GetByCode(dictionary.AlgorithmCode);
+				candidateBatches.Add(await algorithm.GetTrainingCandidatesAsync(userId, dictionary.Id, limit));
+			}
 
 			var merged = new List<WordDto>(capacity: Math.Min(limit, candidateBatches.Sum(batch => batch.Count)));
-			var batchEnumerators = candidateBatches.Select(batch => batch.GetEnumerator()).ToArray();
+			// Boxed as IEnumerator<T>: List<T>.Enumerator is a struct, and copying it out of the array would never advance it.
+			var batchEnumerators = candidateBatches.Select(batch => (IEnumerator<WordDto>)batch.GetEnumerator()).ToArray();
 
 			try
 			{
