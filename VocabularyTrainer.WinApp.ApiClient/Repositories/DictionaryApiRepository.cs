@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http.Json;
-using System.Text.Json;
 using AutoMapper;
 using VocabularyTrainer.Domain.Exceptions;
 using VocabularyTrainer.Domain.Models;
@@ -15,13 +14,13 @@ namespace VocabularyTrainer.WinApp.ApiClient.Repositories
 	{
 		public async Task<List<DictionaryDto>> GetAllAsync(int userId)
 		{
-			var response = await httpClient.GetFromJsonAsync<List<CDictionaryResponse>>($"api/dictionaries?userId={userId}");
+			var response = await httpClient.GetFromJsonAsync<List<CDictionaryResponse>>("api/dictionaries");
 			return mapper.Map<List<DictionaryDto>>(response);
 		}
 
 		public async Task<DictionaryDto?> GetByIdAsync(int dictionaryId, int userId)
 		{
-			var response = await httpClient.GetAsync($"api/dictionaries/{dictionaryId}?userId={userId}");
+			var response = await httpClient.GetAsync($"api/dictionaries/{dictionaryId}");
 
 			if (response.StatusCode == HttpStatusCode.NotFound)
 			{
@@ -44,12 +43,12 @@ namespace VocabularyTrainer.WinApp.ApiClient.Repositories
 			if (response.StatusCode == HttpStatusCode.Conflict)
 			{
 				throw new DuplicateKeyException(
-					await ReadDetailAsync(response) ?? "A dictionary with this name already exists.");
+					await ApiFailures.ReadDetailAsync(response) ?? "A dictionary with this name already exists.");
 			}
 
 			if (response.StatusCode == HttpStatusCode.BadRequest)
 			{
-				throw new DomainValidationException(await ReadDetailAsync(response) ?? "Validation failed.");
+				throw new DomainValidationException(await ApiFailures.ReadDetailAsync(response) ?? "Validation failed.");
 			}
 
 			response.EnsureSuccessStatusCode();
@@ -68,18 +67,18 @@ namespace VocabularyTrainer.WinApp.ApiClient.Repositories
 			if (response.StatusCode == HttpStatusCode.Conflict)
 			{
 				throw new DuplicateKeyException(
-					await ReadDetailAsync(response) ?? "A dictionary with this name already exists.");
+					await ApiFailures.ReadDetailAsync(response) ?? "A dictionary with this name already exists.");
 			}
 
 			if (response.StatusCode == HttpStatusCode.NotFound)
 			{
 				throw new EntityNotFoundException(
-					await ReadDetailAsync(response) ?? $"Dictionary {request.DictionaryId} was not found.");
+					await ApiFailures.ReadDetailAsync(response) ?? $"Dictionary {request.DictionaryId} was not found.");
 			}
 
 			if (response.StatusCode == HttpStatusCode.BadRequest)
 			{
-				throw new DomainValidationException(await ReadDetailAsync(response) ?? "Validation failed.");
+				throw new DomainValidationException(await ApiFailures.ReadDetailAsync(response) ?? "Validation failed.");
 			}
 
 			response.EnsureSuccessStatusCode();
@@ -88,26 +87,8 @@ namespace VocabularyTrainer.WinApp.ApiClient.Repositories
 
 		public async Task DeleteAsync(int dictionaryId, int userId)
 		{
-			var response = await httpClient.DeleteAsync($"api/dictionaries/{dictionaryId}?userId={userId}");
+			var response = await httpClient.DeleteAsync($"api/dictionaries/{dictionaryId}");
 			response.EnsureSuccessStatusCode();
-		}
-
-		private static async Task<string?> ReadDetailAsync(HttpResponseMessage response)
-		{
-			try
-			{
-				var doc = await response.Content.ReadFromJsonAsync<JsonElement>();
-
-				if (doc.TryGetProperty("detail", out var prop) && prop.ValueKind == JsonValueKind.String)
-				{
-					return prop.GetString();
-				}
-			}
-			catch
-			{
-			}
-
-			return null;
 		}
 	}
 }

@@ -180,6 +180,10 @@ namespace VocabularyTrainer.WinApp
 			};
 			removeButton.Click += RemoveTranslationRow_Click;
 
+			_toolTip.SetToolTip(textBox, "Translation, explanation or memory hook for the word, depending on the type on the right.");
+			_toolTip.SetToolTip(kindCombo, "Translation: shown in training. Explanation: meaning in other words. Mnemonic: a memory hook.");
+			_toolTip.SetToolTip(removeButton, "Remove this row.");
+
 			row.Tag = new TranslationRowTag(textBox, kindCombo, removeButton, kind);
 			row.Controls.Add(textBox);
 			row.Controls.Add(kindCombo);

@@ -12,7 +12,7 @@ namespace VocabularyTrainer.WinApp.ApiClient.Repositories
 	{
 		public async Task<List<WordDto>> GetCandidatesAsync(int userId, DictionaryScope scope, int limit)
 		{
-			var url = $"api/training/candidates?userId={userId}&scope={scope}&limit={limit}";
+			var url = $"api/training/candidates?scope={scope}&limit={limit}";
 			var response = await httpClient.GetFromJsonAsync<List<CWordResponse>>(url) ?? [];
 			return mapper.Map<List<WordDto>>(response);
 		}
@@ -20,7 +20,7 @@ namespace VocabularyTrainer.WinApp.ApiClient.Repositories
 		public async Task ApplyReviewAsync(ReviewWordRequest request)
 		{
 			var contractGrade = mapper.Map<CReviewGrade>(request.Grade);
-			var contractReq = new CReviewWordRequest(request.UserId, request.DictionaryId, contractGrade);
+			var contractReq = new CReviewWordRequest(request.DictionaryId, contractGrade);
 
 			var response = await httpClient.PostAsJsonAsync($"api/training/review/{request.WordId}", contractReq);
 			response.EnsureSuccessStatusCode();
@@ -28,7 +28,7 @@ namespace VocabularyTrainer.WinApp.ApiClient.Repositories
 
 		public async Task<IReadOnlyList<ReviewGrade>> GetSupportedGradesAsync(int dictionaryId, int userId)
 		{
-			var url = $"api/training/supported-grades?dictionaryId={dictionaryId}&userId={userId}";
+			var url = $"api/training/supported-grades?dictionaryId={dictionaryId}";
 			var response = await httpClient.GetFromJsonAsync<List<CReviewGrade>>(url) ?? [];
 			return response.Select(g => mapper.Map<ReviewGrade>(g)).ToList();
 		}

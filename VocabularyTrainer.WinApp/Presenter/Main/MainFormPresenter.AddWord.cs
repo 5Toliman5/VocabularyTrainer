@@ -11,8 +11,6 @@ namespace VocabularyTrainer.WinApp.Presenter.Main
 			{
 				if (!_view.ValidateAddWordInput()) return;
 
-				if (!ValidateUser()) return;
-
 				var dictionaryId = _view.SelectedAddingDictionaryId;
 				if (dictionaryId is null)
 				{
@@ -23,7 +21,7 @@ namespace VocabularyTrainer.WinApp.Presenter.Main
 				var request = new AddWordRequest(
 					_view.InputWord,
 					_view.InputTranslations,
-					_user!.Id,
+					_user.Id,
 					dictionaryId.Value
 				);
 

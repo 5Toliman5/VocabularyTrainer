@@ -10,6 +10,7 @@ namespace VocabularyTrainer.WinApp.View
 		private readonly TextBox _nameTextBox;
 		private readonly ComboBox _languageComboBox;
 		private readonly ComboBox _algorithmComboBox;
+		private readonly ToolTip _toolTip = new() { AutoPopDelay = 15000, InitialDelay = 500, ShowAlways = true };
 		private CultureInfo[] _neutralCultures = [];
 
 		public event EventHandler? ConfirmRequested;
@@ -131,6 +132,21 @@ namespace VocabularyTrainer.WinApp.View
 			});
 			AcceptButton = addButton;
 			CancelButton = cancelButton;
+
+			_toolTip.SetToolTip(_nameTextBox, "Name of the new dictionary, e.g. \"English B2\". Must be unique among your dictionaries.");
+			_toolTip.SetToolTip(_languageComboBox, "Language of the words you will add. Start typing to find it.");
+			_toolTip.SetToolTip(_algorithmComboBox, "How words are picked for training. Weight-based: words you forget come back more often. SM-2: spaced repetition by due dates.");
+			_toolTip.SetToolTip(addButton, "Create the dictionary.");
+		}
+
+		protected override void Dispose(bool disposing)
+		{
+			if (disposing)
+			{
+				_toolTip.Dispose();
+			}
+
+			base.Dispose(disposing);
 		}
 
 		public void Initialize(IReadOnlyList<CultureInfo> neutralCultures, IReadOnlyList<AlgorithmInfo> algorithms)

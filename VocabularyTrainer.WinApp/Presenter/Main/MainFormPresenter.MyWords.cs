@@ -23,18 +23,6 @@ namespace VocabularyTrainer.WinApp.Presenter.Main
 		{
 			await ExecuteIfFreeAsync(async () =>
 			{
-				if (_user is null)
-				{
-					var userResult = await _userService.GetAsync(_view.CurrentUserName);
-					if (!userResult.Successful)
-					{
-						_view.ShowError(string.Format(Constants.UserNotFoundError, _view.CurrentUserName));
-						return;
-					}
-					_user = userResult.Value;
-					_wordTrainerService.SetUser(_user!);
-				}
-
 				await RefreshDictionariesAsync();
 
 				_myWordsPage = 1;
@@ -74,7 +62,7 @@ namespace VocabularyTrainer.WinApp.Presenter.Main
 			await ExecuteIfFreeAsync(async () =>
 			{
 				var word = _view.SelectedMyWordsWord;
-				if (word is null || _user is null) return;
+				if (word is null) return;
 
 				await _wordService.DeleteAsync(word.Id, _user.Id);
 				await LoadMyWordsPageAsync();
@@ -114,8 +102,6 @@ namespace VocabularyTrainer.WinApp.Presenter.Main
 
 		private async Task LoadMyWordsPageAsync()
 		{
-			if (_user is null) return;
-
 			var request = new GetWordsPagedRequest
 			{
 				UserId = _user.Id,

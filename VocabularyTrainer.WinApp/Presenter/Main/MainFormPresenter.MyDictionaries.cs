@@ -10,20 +10,6 @@ namespace VocabularyTrainer.WinApp.Presenter.Main
 		{
 			await ExecuteIfFreeAsync(async () =>
 			{
-				if (_user is null)
-				{
-					var userResult = await _userService.GetAsync(_view.CurrentUserName);
-
-					if (!userResult.Successful)
-					{
-						_view.ShowError(string.Format(Constants.UserNotFoundError, _view.CurrentUserName));
-						return;
-					}
-
-					_user = userResult.Value;
-					_wordTrainerService.SetUser(_user!);
-				}
-
 				await EnsureAlgorithmsLoadedAsync();
 
 				await RefreshDictionariesAsync();
@@ -43,9 +29,8 @@ namespace VocabularyTrainer.WinApp.Presenter.Main
 				);
 
 				if (input is null) return;
-				if (!ValidateUser()) return;
 
-				var request = new AddDictionaryRequest(_user!.Id, input.Name, input.LanguageCode, input.AlgorithmCode);
+				var request = new AddDictionaryRequest(_user.Id, input.Name, input.LanguageCode, input.AlgorithmCode);
 				var result = await _dictionaryService.AddAsync(request);
 
 				if (!result.Successful)
@@ -66,8 +51,6 @@ namespace VocabularyTrainer.WinApp.Presenter.Main
 		{
 			await ExecuteIfFreeAsync(async () =>
 			{
-				if (!ValidateUser()) return;
-
 				var dictionaryId = _view.SelectedMyWordsDictionaryId;
 				if (dictionaryId is null) return;
 
@@ -80,7 +63,7 @@ namespace VocabularyTrainer.WinApp.Presenter.Main
 
 				var algorithmCode = ResolveAlgorithmCodeForUpdate(dictionaryId.Value);
 
-				var request = new UpdateDictionaryRequest(dictionaryId.Value, _user!.Id, name, _view.InputLanguageCode, algorithmCode);
+				var request = new UpdateDictionaryRequest(dictionaryId.Value, _user.Id, name, _view.InputLanguageCode, algorithmCode);
 				var result = await _dictionaryService.UpdateAsync(request);
 
 				if (!result.Successful)
@@ -100,8 +83,6 @@ namespace VocabularyTrainer.WinApp.Presenter.Main
 		{
 			await ExecuteIfFreeAsync(async () =>
 			{
-				if (!ValidateUser()) return;
-
 				var dictionaryId = _view.SelectedMyWordsDictionaryId;
 				if (dictionaryId is null) return;
 
@@ -111,12 +92,23 @@ namespace VocabularyTrainer.WinApp.Presenter.Main
 					return;
 				}
 
-				await _dictionaryService.DeleteAsync(dictionaryId.Value, _user!.Id);
+				var dictionary = _dictionaries.FirstOrDefault(d => d.Id == dictionaryId.Value);
+
+				if (dictionary is not null)
+				{
+					var confirmation = string.Format(Constants.DeleteDictionaryConfirmation, dictionary.Name, dictionary.WordCount);
+
+					if (!_view.Confirm(confirmation)) return;
+				}
+
+				await _dictionaryService.DeleteAsync(dictionaryId.Value, _user.Id);
 
 				await RefreshDictionariesAsync();
 				_view.ClearMyWordsDictionaryInput();
 
+				// SetScope is a no-op when the scope is already All, so the deleted dictionary's words must be dropped explicitly.
 				_wordTrainerService.SetScope(DictionaryScope.All);
+				_wordTrainerService.ResetWords();
 			});
 		}
 	}

@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using VocabularyTrainer.WinApp.ApiClient;
+using VocabularyTrainer.WinApp.ApiClient.Auth;
 using VocabularyTrainer.BusinessLogic;
 
 namespace VocabularyTrainer.WinApp.Infrastructure.AppStart
@@ -13,7 +14,8 @@ namespace VocabularyTrainer.WinApp.Infrastructure.AppStart
 		{
 			ConfigureLogging(services, config.LogsDirectory);
 
-			services.AddApiClient(config.ApiBaseUrl);
+			services.AddSingleton<ITokenStore, DpapiTokenStore>();
+			services.AddApiClient(config.ApiBaseUrl, Constants.ClientType);
 			services.AddVocabularyTrainerForApiClient();
 
 			return services;
