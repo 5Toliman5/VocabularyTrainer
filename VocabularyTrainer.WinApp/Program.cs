@@ -1,6 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
+using VocabularyTrainer.WinApp.ApiClient.Auth;
 using VocabularyTrainer.WinApp.Infrastructure.AppStart;
+using VocabularyTrainer.WinApp.Presenter.Login;
 using VocabularyTrainer.WinApp.Presenter.Main;
 
 namespace VocabularyTrainer.WinApp
@@ -22,6 +24,9 @@ namespace VocabularyTrainer.WinApp
 			{
 				var services = DependencyResolver.ConstructServices();
 				using var serviceProvider = services.BuildServiceProvider();
+
+				if (!SignIn(serviceProvider)) return;
+
 				var mainForm = serviceProvider.GetRequiredService<MainForm>();
 				_ = serviceProvider.GetRequiredService<MainFormPresenter>();
 
@@ -41,6 +46,19 @@ namespace VocabularyTrainer.WinApp
 			{
 				Log.CloseAndFlush();
 			}
+		}
+
+		// Silent sign-in with the stored refresh token first; the login dialog only when that is not possible.
+		private static bool SignIn(IServiceProvider serviceProvider)
+		{
+			var accountClient = serviceProvider.GetRequiredService<IAccountClient>();
+
+			// Task.Run: no UI SynchronizationContext to deadlock on before the message loop starts.
+			var restored = Task.Run(accountClient.TryRestoreSessionAsync).GetAwaiter().GetResult();
+
+			if (restored) return true;
+
+			return serviceProvider.GetRequiredService<LoginFormPresenter>().ShowModal(null);
 		}
 
 		private static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)

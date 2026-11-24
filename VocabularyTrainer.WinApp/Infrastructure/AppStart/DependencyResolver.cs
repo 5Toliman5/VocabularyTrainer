@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using VocabularyTrainer.WinApp.Presenter.AddDictionary;
+using VocabularyTrainer.WinApp.Presenter.Login;
 using VocabularyTrainer.WinApp.Presenter.Main;
 using VocabularyTrainer.WinApp.View;
 
@@ -16,6 +17,7 @@ namespace VocabularyTrainer.WinApp.Infrastructure.AppStart
 
 			services.AddSingleton<IMainFormView, MainForm>();
 			services.AddSingleton(sp => (MainForm)sp.GetRequiredService<IMainFormView>());
+			services.AddSingleton<LoginFormPresenter>();
 			services.AddSingleton<AddDictionaryFormPresenter>();
 			services.AddSingleton<MainFormPresenter>();
 

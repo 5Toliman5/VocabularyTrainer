@@ -79,9 +79,6 @@ namespace VocabularyTrainer.WinApp
 			MyWordsDeleteButton = new Button();
 			MyWordsResetButton = new Button();
 			UserPage = new TabPage();
-			textBox1 = new TextBox();
-			CurrentUserTextBox = new TextBox();
-			CurrentUserLabel = new Label();
 			AddWordsErrorProvider = new ErrorProvider(components);
 			MainTabControl.SuspendLayout();
 			TrainYourselfPage.SuspendLayout();
@@ -645,46 +642,13 @@ namespace VocabularyTrainer.WinApp
 			// UserPage
 			// 
 			UserPage.BackColor = Color.Transparent;
-			UserPage.Controls.Add(textBox1);
-			UserPage.Controls.Add(CurrentUserTextBox);
-			UserPage.Controls.Add(CurrentUserLabel);
 			UserPage.ForeColor = Color.Black;
 			UserPage.Location = new Point(4, 29);
 			UserPage.Name = "UserPage";
 			UserPage.Padding = new Padding(3);
 			UserPage.Size = new Size(912, 499);
 			UserPage.TabIndex = 4;
-			UserPage.Text = "Select user";
-			// 
-			// textBox1
-			// 
-			textBox1.Location = new Point(6, 78);
-			textBox1.Multiline = true;
-			textBox1.Name = "textBox1";
-			textBox1.ReadOnly = true;
-			textBox1.Size = new Size(437, 100);
-			textBox1.TabIndex = 13;
-			textBox1.Text = "TO IMPLEMENT:\r\n1. MULTIPLE USERS";
-			// 
-			// CurrentUserTextBox
-			// 
-			CurrentUserTextBox.Location = new Point(158, 25);
-			CurrentUserTextBox.Name = "CurrentUserTextBox";
-			CurrentUserTextBox.ReadOnly = true;
-			CurrentUserTextBox.Size = new Size(227, 41);
-			CurrentUserTextBox.TabIndex = 12;
-			CurrentUserTextBox.Tag = "";
-			CurrentUserTextBox.Text = "Toliman";
-			// 
-			// CurrentUserLabel
-			// 
-			CurrentUserLabel.AutoSize = true;
-			CurrentUserLabel.ForeColor = Color.Black;
-			CurrentUserLabel.Location = new Point(6, 28);
-			CurrentUserLabel.Name = "CurrentUserLabel";
-			CurrentUserLabel.Size = new Size(154, 33);
-			CurrentUserLabel.TabIndex = 7;
-			CurrentUserLabel.Text = "Current user";
+			UserPage.Text = "Account";
 			// 
 			// AddWordsErrorProvider
 			// 
@@ -777,10 +741,6 @@ namespace VocabularyTrainer.WinApp
 		private Button MyWordsNextButton;
 		private Button MyWordsDeleteButton;
 		private Button MyWordsResetButton;
-		// User page
-		private Label CurrentUserLabel;
-		private TextBox CurrentUserTextBox;
-		private TextBox textBox1;
 		// Shared
 		private ErrorProvider AddWordsErrorProvider;
 	}

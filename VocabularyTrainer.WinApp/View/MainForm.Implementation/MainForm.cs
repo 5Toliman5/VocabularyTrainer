@@ -25,9 +25,12 @@ namespace VocabularyTrainer.WinApp
 			InitializeLanguageComboBox();
 			InitializeMyWordsGrid();
 			InitializeTranslationsEditor();
+			InitializeAccountPage();
+			InitializeToolTips();
 		}
 
-		public event EventHandler<string>? UserChanged;
+		public event EventHandler? TrainingPageEntered;
+		public event EventHandler? LogoutRequested;
 		public event EventHandler<int?>? TrainingDictionaryChanged;
 		public event EventHandler? AddWordRequested;
 		public event EventHandler? ShowNextWordRequested;
@@ -47,6 +50,8 @@ namespace VocabularyTrainer.WinApp
 
 		public void ShowError(string message) =>
 			MessageBox.Show(message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+		public void RestartApplication() => Application.Restart();
 
 		public void LoadDictionaries(IReadOnlyList<DictionaryDto> dictionaries)
 		{

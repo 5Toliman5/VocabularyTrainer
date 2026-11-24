@@ -4,8 +4,6 @@ namespace VocabularyTrainer.WinApp
 {
 	public partial class MainForm
 	{
-		public string CurrentUserName => CurrentUserTextBox.Text;
-
 		public void ClearShowWordOutput()
 		{
 			DisplayWordTextBox.Text = string.Empty;
@@ -74,12 +72,7 @@ namespace VocabularyTrainer.WinApp
 
 		private void TrainYourSelfPageEnter(object sender, EventArgs e)
 		{
-			var userName = CurrentUserTextBox.Text;
-
-			if (!string.IsNullOrEmpty(userName))
-			{
-				UserChanged?.Invoke(this, userName);
-			}
+			TrainingPageEntered?.Invoke(this, EventArgs.Empty);
 		}
 
 		private void DictionaryTrainingComboBox_SelectedIndexChanged(object sender, EventArgs e)

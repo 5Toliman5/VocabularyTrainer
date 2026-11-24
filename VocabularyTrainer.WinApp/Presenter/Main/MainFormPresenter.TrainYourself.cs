@@ -7,19 +7,10 @@ namespace VocabularyTrainer.WinApp.Presenter.Main
 	{
 		private bool _translationWasShown;
 
-		private async void OnUserChanged(object? sender, string userName)
+		private async void OnTrainingPageEntered(object? sender, EventArgs e)
 		{
 			await ExecuteIfFreeAsync(async () =>
 			{
-				var userResult = await _userService.GetAsync(userName);
-				if (!userResult.Successful)
-				{
-					_view.ShowError(string.Format(Constants.UserNotFoundError, userName));
-					return;
-				}
-				_user = userResult.Value;
-				_wordTrainerService.SetUser(_user!);
-
 				await RefreshDictionariesAsync();
 
 				await ShowNextWordAsync();
@@ -30,8 +21,6 @@ namespace VocabularyTrainer.WinApp.Presenter.Main
 		{
 			await ExecuteIfFreeAsync(async () =>
 			{
-				if (_user is null) return;
-
 				if (!_wordTrainerService.SetScope(DictionaryScope.FromNullableId(dictionaryId)))
 				{
 					return;
@@ -76,8 +65,6 @@ namespace VocabularyTrainer.WinApp.Presenter.Main
 		private async Task ShowNextWordAsync()
 		{
 			_view.ClearShowWordOutput();
-
-			if (_user is null) return;
 
 			if (!_translationWasShown)
 				await _wordTrainerService.ReviewCurrentWordAsync(ReviewGrade.Good);

@@ -16,11 +16,11 @@ namespace VocabularyTrainer.WinApp.ApiClient.Repositories
 	{
 		public async Task<List<WordDto>> GetAllAsync(int userId, int? dictionaryId = null)
 		{
-			var url = $"api/words?userId={userId}";
+			var url = "api/words";
 
 			if (dictionaryId.HasValue)
 			{
-				url += $"&dictionaryId={dictionaryId}";
+				url += $"?dictionaryId={dictionaryId}";
 			}
 
 			var response = await httpClient.GetFromJsonAsync<List<CWordResponse>>(url);
@@ -56,17 +56,17 @@ namespace VocabularyTrainer.WinApp.ApiClient.Repositories
 			if (response.StatusCode == HttpStatusCode.Conflict)
 			{
 				throw new DuplicateKeyException(
-					await ReadDetailAsync(response) ?? "A word with this text already exists in this dictionary.");
+					await ApiFailures.ReadDetailAsync(response) ?? "A word with this text already exists in this dictionary.");
 			}
 
 			if (response.StatusCode == HttpStatusCode.BadRequest)
 			{
-				throw new DomainValidationException(await ReadDetailAsync(response) ?? "Validation failed.");
+				throw new DomainValidationException(await ApiFailures.ReadDetailAsync(response) ?? "Validation failed.");
 			}
 
 			if (response.StatusCode == HttpStatusCode.NotFound)
 			{
-				throw new EntityNotFoundException(await ReadDetailAsync(response) ?? "Dictionary was not found.");
+				throw new EntityNotFoundException(await ApiFailures.ReadDetailAsync(response) ?? "Dictionary was not found.");
 			}
 
 			response.EnsureSuccessStatusCode();
@@ -83,7 +83,7 @@ namespace VocabularyTrainer.WinApp.ApiClient.Repositories
 
 		public async Task<int> DeleteAsync(int wordId, int userId)
 		{
-			var response = await httpClient.DeleteAsync($"api/words/{wordId}?userId={userId}");
+			var response = await httpClient.DeleteAsync($"api/words/{wordId}");
 
 			if (response.StatusCode == HttpStatusCode.NotFound)
 			{
@@ -96,7 +96,7 @@ namespace VocabularyTrainer.WinApp.ApiClient.Repositories
 
 		private static string BuildPagedUrl(GetWordsPagedRequest request)
 		{
-			var sb = new StringBuilder($"api/words/paged?userId={request.UserId}&page={request.Page}&pageSize={request.PageSize}");
+			var sb = new StringBuilder($"api/words/paged?page={request.Page}&pageSize={request.PageSize}");
 
 			if (request.DictionaryId.HasValue)
 			{
@@ -125,24 +125,6 @@ namespace VocabularyTrainer.WinApp.ApiClient.Repositories
 
 			sb.Append($"&sortBy={request.SortBy}&sortDesc={request.SortDesc}");
 			return sb.ToString();
-		}
-
-		private static async Task<string?> ReadDetailAsync(HttpResponseMessage response)
-		{
-			try
-			{
-				var doc = await response.Content.ReadFromJsonAsync<JsonElement>();
-
-				if (doc.TryGetProperty("detail", out var prop) && prop.ValueKind == JsonValueKind.String)
-				{
-					return prop.GetString();
-				}
-			}
-			catch
-			{
-			}
-
-			return null;
 		}
 	}
 }

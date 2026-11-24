@@ -10,6 +10,8 @@ using CDictionaryResponse = VocabularyTrainer.Api.Contract.Dictionaries.Dictiona
 using CAddDictionaryRequest = VocabularyTrainer.Api.Contract.Dictionaries.AddDictionaryRequest;
 using CUpdateDictionaryRequest = VocabularyTrainer.Api.Contract.Dictionaries.UpdateDictionaryRequest;
 using CUserResponse = VocabularyTrainer.Api.Contract.Users.UserResponse;
+using CUserIdentityResponse = VocabularyTrainer.Api.Contract.Users.UserIdentityResponse;
+using UserIdentityDto = VocabularyTrainer.Domain.Models.Auth.UserIdentityDto;
 using CAlgorithmInfoResponse = VocabularyTrainer.Api.Contract.Algorithms.AlgorithmInfoResponse;
 using CAlgorithmCost = VocabularyTrainer.Api.Contract.Algorithms.AlgorithmCost;
 
@@ -37,6 +39,7 @@ namespace VocabularyTrainer.WinApp.ApiClient.Mapping
 			CreateMap<UpdateDictionaryRequest, CUpdateDictionaryRequest>();
 
 			CreateMap<CUserResponse, UserModel>();
+			CreateMap<CUserIdentityResponse, UserIdentityDto>();
 
 			CreateMap<CAlgorithmCost, AlgorithmCost>().ReverseMap();
 			CreateMap<CAlgorithmInfoResponse, AlgorithmInfo>();
