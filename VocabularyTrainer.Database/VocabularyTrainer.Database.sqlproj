@@ -59,6 +59,9 @@
   </ItemGroup>
   <ItemGroup>
     <Build Include="Users.sql" />
+    <Build Include="UserIdentities.sql" />
+    <Build Include="RefreshTokens.sql" />
+    <Build Include="VerificationCodes.sql" />
     <Build Include="Algorithms.sql" />
     <Build Include="Dictionaries.sql" />
     <Build Include="Words.sql" />
