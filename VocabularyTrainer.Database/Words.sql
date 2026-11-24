@@ -2,7 +2,7 @@
 (
 	[ID]             INT NOT NULL PRIMARY KEY IDENTITY,
 	[UserId]         [int] NOT NULL FOREIGN KEY REFERENCES Users(ID),
-	[DictionaryId]   [int] NOT NULL FOREIGN KEY REFERENCES Dictionaries(ID),
+	[DictionaryId]   [int] NOT NULL CONSTRAINT [FK_Words_Dictionaries] FOREIGN KEY REFERENCES Dictionaries(ID) ON DELETE CASCADE,
 	[Value]          [nvarchar](200) NOT NULL,
 	[NormalizedText] [nvarchar](200) NOT NULL,
 	[LanguageCode]   [nvarchar](10) NOT NULL,

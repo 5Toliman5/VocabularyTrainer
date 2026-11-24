@@ -1,8 +1,8 @@
-﻿CREATE TABLE [dbo].[Users]
+CREATE TABLE [dbo].[Users]
 (
-	[ID] INT NOT NULL PRIMARY KEY IDENTITY,
-	[Name] [nvarchar](64) NOT NULL UNIQUE,
-	[Info] [nvarchar](max) NULL,
-	[Login] [nvarchar](32) NOT NULL,
-	[Password] [nvarchar](256) NOT NULL
+	[ID]           INT NOT NULL PRIMARY KEY IDENTITY,
+	[DisplayName]  NVARCHAR(64) NOT NULL,
+	[PasswordHash] NVARCHAR(256) NULL,
+	[CreatedAt]    DATETIME2 NOT NULL CONSTRAINT [DF_Users_CreatedAt] DEFAULT SYSUTCDATETIME(),
+	[IsBlocked]    BIT NOT NULL CONSTRAINT [DF_Users_IsBlocked] DEFAULT 0
 )
