@@ -30,7 +30,7 @@ namespace VocabularyTrainer.WinApp.Infrastructure
 		public const string RegistrationFieldsRequired = "Please fill in name, email, code and password.";
 		public const string ResetFieldsRequired = "Please fill in email, code and new password.";
 		public const string PasswordsDoNotMatch = "Passwords do not match.";
-		public const string CodeSent = "A code has been sent to {0}. It is valid for 10 minutes.";
+		public const string CodeSent = "A code has been sent to {0}. The email says how long it is valid.";
 		public const string PasswordResetDone = "Password changed. Please sign in with the new password.";
 
 		public const string InfoCaption = "Vocabulary Trainer";

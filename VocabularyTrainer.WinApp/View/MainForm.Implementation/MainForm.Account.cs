@@ -153,7 +153,7 @@ namespace VocabularyTrainer.WinApp
 
 			_linkCodeTextBox = new TextBox { MaxLength = 6 };
 			AddRow(grid, "Code from email", _linkCodeTextBox);
-			_toolTip.SetToolTip(_linkCodeTextBox, "The 6-digit code from the email. It is valid for 10 minutes.");
+			_toolTip.SetToolTip(_linkCodeTextBox, "The 6-digit code from the email. It expires after a short time; the email says when.");
 
 			var linkButton = CreateButton("Add email", () => LinkEmailRequested?.Invoke(this, EventArgs.Empty));
 			_toolTip.SetToolTip(linkButton, "Confirm the code and add the email as a sign-in method.");

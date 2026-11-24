@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using VocabularyTrainer.Domain.Entities;
 
 namespace VocabularyTrainer.DataAccess
@@ -15,6 +16,8 @@ namespace VocabularyTrainer.DataAccess
 		DbSet<WordTranslation> WordTranslations { get; }
 		DbSet<WordWeightBasedParams> WordWeightBasedParams { get; }
 		DbSet<WordSm2Params> WordSm2Params { get; }
+
+		DatabaseFacade Database { get; }
 
 		Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 	}

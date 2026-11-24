@@ -31,6 +31,10 @@ namespace VocabularyTrainer.WinApp.ApiClient.Auth
 		private DateTime _accessTokenExpiresAt;
 		private string? _refreshToken;
 
+		// The token this instance rotated away from. If the store still holds it, our own save failed:
+		// it is not a newer token from another instance and must never be presented again.
+		private string? _rotatedAwayToken;
+
 		public UserModel? CurrentUser { get; private set; }
 
 		internal string? RefreshToken => _refreshToken;
@@ -47,7 +51,7 @@ namespace VocabularyTrainer.WinApp.ApiClient.Auth
 			{
 				return await RefreshAccessTokenAsync(null, CancellationToken.None) is not null;
 			}
-			catch (Exception ex) when (ApiFailures.IsUnreachable(ex))
+			catch (Exception ex) when (ApiFailures.IsHttpFailure(ex))
 			{
 				// API unreachable or too slow: keep the stored token for the next launch, fall back to the login form now.
 				_refreshToken = null;
@@ -89,7 +93,7 @@ namespace VocabularyTrainer.WinApp.ApiClient.Auth
 			{
 				using var response = await authHttpClient.PostAsJsonAsync("api/auth/logout", new CRefreshTokenRequest(refreshToken));
 			}
-			catch (Exception ex) when (ApiFailures.IsUnreachable(ex))
+			catch (Exception ex) when (ApiFailures.IsHttpFailure(ex))
 			{
 				// Best effort: the local session is already gone; the server token simply expires.
 			}
@@ -153,7 +157,7 @@ namespace VocabularyTrainer.WinApp.ApiClient.Auth
 		{
 			var storedToken = tokenStore.Load();
 
-			if (!string.IsNullOrEmpty(storedToken) && storedToken != _refreshToken)
+			if (!string.IsNullOrEmpty(storedToken) && storedToken != _refreshToken && storedToken != _rotatedAwayToken)
 			{
 				_refreshToken = storedToken;
 			}
@@ -189,6 +193,7 @@ namespace VocabularyTrainer.WinApp.ApiClient.Auth
 		{
 			_accessToken = tokens.AccessToken;
 			_accessTokenExpiresAt = tokens.AccessTokenExpiresAt.ToUniversalTime();
+			_rotatedAwayToken = _refreshToken;
 			_refreshToken = tokens.RefreshToken;
 			CurrentUser = mapper.Map<UserModel>(tokens.User);
 
@@ -199,6 +204,7 @@ namespace VocabularyTrainer.WinApp.ApiClient.Auth
 		{
 			_accessToken = null;
 			_refreshToken = null;
+			_rotatedAwayToken = null;
 			CurrentUser = null;
 
 			tokenStore.Clear();

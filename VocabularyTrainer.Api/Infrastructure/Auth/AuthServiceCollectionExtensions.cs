@@ -22,6 +22,7 @@ namespace VocabularyTrainer.Api.Infrastructure.Auth
 			services.Configure<JwtOptions>(jwtSection);
 			services.Configure<AuthOptions>(authSection);
 			services.AddSingleton<ITokenService, JwtTokenService>();
+			services.AddHostedService<AuthCleanupHostedService>();
 
 			services
 				.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

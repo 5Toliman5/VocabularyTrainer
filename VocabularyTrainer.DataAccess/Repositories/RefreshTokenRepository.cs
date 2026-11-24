@@ -97,6 +97,20 @@ namespace VocabularyTrainer.DataAccess.Repositories
 			}
 		}
 
+		public async Task<int> DeleteExpiredBeforeAsync(DateTime threshold)
+		{
+			try
+			{
+				return await dbContext.RefreshTokens
+					.Where(t => t.ExpiresAt < threshold)
+					.ExecuteDeleteAsync();
+			}
+			catch (SqlException ex)
+			{
+				throw new DatabaseException("Failed to delete expired refresh tokens from the database.", ex);
+			}
+		}
+
 		public async Task RevokeAllForUserAsync(int userId, byte[]? exceptTokenHash = null)
 		{
 			try

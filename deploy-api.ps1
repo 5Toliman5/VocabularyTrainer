@@ -182,7 +182,8 @@ function Get-ApiUserSecrets {
     param([Parameter(Mandatory = $true)][string]$ProjectPath)
 
     [xml]$project = Get-Content -LiteralPath $ProjectPath
-    $userSecretsId = ($project.Project.PropertyGroup | ForEach-Object { $_.UserSecretsId } | Where-Object { $_ } | Select-Object -First 1)
+    # SelectSingleNode, not $_.UserSecretsId: under StrictMode a PropertyGroup without that element would throw.
+    $userSecretsId = $project.SelectSingleNode('//UserSecretsId')?.InnerText
     if ([string]::IsNullOrWhiteSpace($userSecretsId)) {
         throw "UserSecretsId is not set in $ProjectPath."
     }
@@ -209,16 +210,26 @@ function Set-AppPoolEnvironmentVariables {
     )
 
     foreach ($name in $Variables.Keys) {
-        $value = $Variables[$name]
-        if ($value.Contains("'")) {
-            throw "Secret '$name' contains a single quote, which appcmd cannot pass. Change the value or set it manually in IIS."
+        if ($Variables[$name] -match "['\[\]]") {
+            throw "Secret '$name' contains ' [ or ], which appcmd cannot pass. Change the value or set it manually in IIS."
         }
+    }
 
+    # The pool's variables are owned by this script: drop all of them first, so a secret removed from
+    # user-secrets does not linger on the server.
+    [xml]$poolConfig = (& $AppCmd list apppool "$PoolName" /config /xml) -join "`n"
+    $existingNames = @($poolConfig.SelectNodes('//environmentVariables/add') | ForEach-Object { $_.GetAttribute('name') })
+
+    foreach ($name in $existingNames) {
         Invoke-AppCmd -Arguments @(
             'set', 'config', '-section:system.applicationHost/applicationPools',
             "/-[name='$PoolName'].environmentVariables.[name='$name']",
             '/commit:apphost'
-        ) -AllowFailure | Out-Null
+        ) | Out-Null
+    }
+
+    foreach ($name in $Variables.Keys) {
+        $value = $Variables[$name]
 
         Invoke-AppCmd -Arguments @(
             'set', 'config', '-section:system.applicationHost/applicationPools',

@@ -9,7 +9,7 @@ namespace VocabularyTrainer.DataAccess.Repositories
 {
 	public class VerificationCodeRepository(IVocabularyTrainerDbContext dbContext) : IVerificationCodeRepository
 	{
-		public async Task AddAsync(NewVerificationCode code)
+		public async Task<int> AddAsync(NewVerificationCode code)
 		{
 			var entity = new VerificationCode
 			{
@@ -25,10 +25,39 @@ namespace VocabularyTrainer.DataAccess.Repositories
 			{
 				dbContext.VerificationCodes.Add(entity);
 				await dbContext.SaveChangesAsync();
+				return entity.Id;
 			}
 			catch (SqlException ex)
 			{
 				throw new DatabaseException("Failed to add verification code to the database.", ex);
+			}
+		}
+
+		public async Task DeleteAsync(int codeId)
+		{
+			try
+			{
+				await dbContext.VerificationCodes
+					.Where(c => c.Id == codeId)
+					.ExecuteDeleteAsync();
+			}
+			catch (SqlException ex)
+			{
+				throw new DatabaseException("Failed to delete verification code from the database.", ex);
+			}
+		}
+
+		public async Task<int> DeleteExpiredBeforeAsync(DateTime threshold)
+		{
+			try
+			{
+				return await dbContext.VerificationCodes
+					.Where(c => c.ExpiresAt < threshold)
+					.ExecuteDeleteAsync();
+			}
+			catch (SqlException ex)
+			{
+				throw new DatabaseException("Failed to delete expired verification codes from the database.", ex);
 			}
 		}
 
