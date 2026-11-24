@@ -22,6 +22,26 @@ powershell -File deploy-api.ps1
 
 There are no automated tests in this solution.
 
+### Secrets
+
+Secrets are **never** stored in `appsettings.json` or anywhere in the repository. The API reads them from configuration keys that come from:
+
+- **Development:** .NET user-secrets of `VocabularyTrainer.Api` (`UserSecretsId` in the `.csproj`; loaded automatically when `ASPNETCORE_ENVIRONMENT=Development`, which `launchSettings.json` sets).
+- **IIS / servers:** environment variables (`Section__Key`). `deploy-api.ps1` copies every user-secret of the deploying Windows user into environment variables of the IIS application pool (stored in `applicationHost.config`, readable only by Administrators/SYSTEM); the app pool identity cannot read the developer's user-secrets itself.
+
+| Key | Required | Purpose |
+| --- | --- | --- |
+| `ConnectionStrings:Default` | yes | SQL Server connection string |
+| `Jwt:SigningKey` | yes | HMAC key for access tokens, ≥ 32 bytes |
+| `Smtp:UserName`, `Smtp:Password` | for a real SMTP relay | not needed for Mailpit |
+
+```bash
+dotnet user-secrets set "ConnectionStrings:Default" "Server=...;Database=VocabularyTrainer;..." --project VocabularyTrainer.Api
+dotnet user-secrets list --project VocabularyTrainer.Api
+```
+
+The API fails fast at startup with an explicit message when a required secret is missing. Changing `Jwt:SigningKey` invalidates issued access tokens only; clients renew them transparently with their refresh tokens.
+
 **Nullable reference types** are turned **off** for every project via the repo-root [`Directory.Build.props`](./Directory.Build.props) (`<Nullable>disable</Nullable>` plus `NoWarn` for **CS8632** so existing `string?` annotations do not spam “annotation without context”). Flow-analysis warnings (CS8600–CS8618, etc.) are therefore suppressed solution-wide without per-file pragmas.
 
 ## Architecture
@@ -35,27 +55,47 @@ The API is designed to be client-agnostic: in the future it may be consumed by a
 ```
 WinApp  →  WinApp.ApiClient  →  Api.Contract
 Api     →  Api.BusinessLogic →  BusinessLogic  →  DataAccess  →  Domain
+Api     →  Infrastructure (SMTP, future Telegram/Viber senders)  →  Domain
                                                         ↑
                                                      Common  (Result/Result<T> + ResultErrorKind)
 ```
 
 ### Projects
 
-- **Domain** — entities (`User`, `Algorithm`, `UserDictionary`, `Word`, `WordTranslation`, `WordWeightBasedParams`, `WordSm2Params`), domain models/DTOs, repository and service interfaces, exceptions. Zero external dependencies.
+- **Domain** — entities (`User`, `UserIdentity`, `RefreshToken`, `VerificationCode`, `Algorithm`, `UserDictionary`, `Word`, `WordTranslation`, `WordWeightBasedParams`, `WordSm2Params`), domain models/DTOs, repository and service interfaces, exceptions. Zero external dependencies.
 - **DataAccess** — EF Core (SQL Server) repositories. `VocabularyTrainerDbContext` implements `IVocabularyTrainerDbContext`; Fluent-API configurations live under `Configurations/`. **On the API host**, `AddDbContext` + `IVocabularyTrainerDbContext` are **scoped** (one EF context per HTTP request); repositories are **scoped** and share that context. `WordWeightBasedParamsRepository` / `WordSm2ParamsRepository` open a **nested scope** only on insert-after-unique-race retry so the retry uses a fresh context. The WinApp does **not** call `AddDataAccess` (it uses HTTP repositories). No raw SQL files, no Dapper, no migrations.
 - **BusinessLogic** — domain service implementations. Key pieces:
-    - `WordService`, `DictionaryService`, `UserService` — generic CRUD/orchestration services returning `Result`/`Result<T>`. They are the **single source of truth** for input validation, dictionary-ownership checks, text normalisation, and language-code resolution. The `Api.BusinessLogic` layer above only translates `Result` → HTTP, it does not re-validate. The `IDictionaryRepository` (in `WordService`), `ITrainingAlgorithmRegistry`, and `IAlgorithmRepository` (in `DictionaryService`) dependencies are constructor-optional so the WinApp host (where the repository is HTTP-backed and the registry / algorithm lookup are absent) can degrade these services to safe passthroughs and let the server be the authoritative validator.
+    - `Services/Auth/` — `AuthService`, `VerificationCodeService`, `LoginNormalizer`, `PasswordHasher`, `EmailVerificationCodeSender`, `ExternalAuthProviderRegistry`. See **Authentication** below.
+    - `WordService`, `DictionaryService`, `UserService` (server-only: profile + linked identities) — generic CRUD/orchestration services returning `Result`/`Result<T>`. They are the **single source of truth** for input validation, dictionary-ownership checks, text normalisation, and language-code resolution. The `Api.BusinessLogic` layer above only translates `Result` → HTTP, it does not re-validate. The `IDictionaryRepository` (in `WordService`), `ITrainingAlgorithmRegistry`, and `IAlgorithmRepository` (in `DictionaryService`) dependencies are constructor-optional so the WinApp host (where the repository is HTTP-backed and the registry / algorithm lookup are absent) can degrade these services to safe passthroughs and let the server be the authoritative validator.
     - `WordTextNormalizer` — collapses whitespace, casefolds invariant, strips diacritics. Used to compute the per-`(user, dictionary)` deduplication key (`Words.NormalizedText`).
     - `Services/Algorithms/` — pluggable training algorithms behind `IWordTrainingAlgorithm` (`WeightBasedAlgorithm`, `Sm2Algorithm`) and a `TrainingAlgorithmRegistry` that maps an `AlgorithmCode` (string) to an implementation.
     - `TrainingService` — API-side facade implementing `ITrainingService`; resolves the right algorithm for a dictionary and delegates `GetTrainingCandidatesAsync` / `ApplyReviewAsync` to it. Returns `Result<T>` so failures (dictionary not found, unknown algorithm) become proper 4xx responses instead of unhandled exceptions.
     - `WordTrainerService` — WinApp-side stateful session orchestrator (`ITrainingClient` is the abstraction it talks to over HTTP).
 - **Api.BusinessLogic** — thin API-facing facade over the domain services. Each `IApi*Service` has the same shape as the underlying `I*Service` and returns the same `Result`/`Result<T>` — there is no separate "API result" type. `IApiTrainingService` is split out from `IApiWordService` so training endpoints live on a separate controller. `IApiAlgorithmService` exposes the algorithm catalog. The layer exists so controllers depend on an API-owned interface (room for future API-only concerns: auth scoping, request enrichment, response shaping) without leaking into `BusinessLogic`. Registered via `AddApiBusinessLogic(connectionString)`, which internally calls `AddVocabularyTrainerForApi` from `BusinessLogic`.
-- **Api** — ASP.NET Core controllers (`Users`, `Words`, `Training`, `Dictionaries`, `Algorithms`) + a single `MappingProfile` (AutoMapper) mapping `Api.Contract` DTOs ↔ `Domain.Models`. The mapper does not use `ctx.Items` magic — values that come from the route (e.g. `wordId`, `dictionaryId`) are composed into the domain request explicitly by the controller. Controllers depend on `Api.BusinessLogic` services (e.g., `IApiDictionaryService`), **never** on repositories or `BusinessLogic` services directly. `BaseApiController` lives in `Api/Infrastructure/`; its `ResolveFailure(IResult result)` maps `ResultErrorKind` to the appropriate HTTP status and a `ProblemDetails` body.
+- **Infrastructure** — adapters to external services behind Domain ports. Currently `SmtpEmailSender : IEmailSender` (MailKit, config section `Smtp`; Mailpit on `localhost:1025` for development). Registered by the API via `AddInfrastructure(configuration)`.
+- **Api** — ASP.NET Core controllers (`Auth`, `Me`, `Words`, `Training`, `Dictionaries`, `Algorithms`) + a single `MappingProfile` (AutoMapper) mapping `Api.Contract` DTOs ↔ `Domain.Models`. The mapper does not use `ctx.Items` magic — values that come from the route (e.g. `wordId`, `dictionaryId`) are composed into the domain request explicitly by the controller. Controllers depend on `Api.BusinessLogic` services (e.g., `IApiDictionaryService`), **never** on repositories or `BusinessLogic` services directly. `BaseApiController` lives in `Api/Infrastructure/`; its `ResolveFailure(IResult result)` maps `ResultErrorKind` to the appropriate HTTP status and a `ProblemDetails` body.
 - **Api.Contract** — HTTP request/response DTOs only; shared by the API and `WinApp.ApiClient`.
-- **WinApp.ApiClient** — implements the same `Domain` interfaces as `DataAccess`, but calls the REST API instead of SQL Server. In addition to repositories, it provides `HttpTrainingClient` (implements `ITrainingClient`) and `HttpAlgorithmCatalog` (implements `IAlgorithmCatalog`) for the WinApp.
-- **WinApp** — MVP pattern. `MainFormPresenter` (split across partial classes per tab — `MyWords`, `MyDictionaries`, `AddWord`, `TrainYourself`) holds all UI logic; `IMainFormView`/`MainForm` is the passive view. DI is wired in `Infrastructure/AppStart/DependencyResolver`. User-facing strings live in `Infrastructure/Constants.cs`.
-- **Common** — universal class library (future NuGet). Contains `Result`/`Result<T>` wrappers (carrying a `ResultErrorKind` for the failure category — `Validation` / `NotFound` / `Conflict` / `Unknown`) and shared extensions (e.g., `IsNullOrEmpty`). Host-agnostic; no web concepts. Suitable for WinForms, the API, and any future client.
-- **Database** — SQL Server Data Tools `.sqlproj` kept as a **mirror of the production schema**. Schema files: `Users`, `Algorithms`, `Dictionaries`, `Words`, `WordTranslations`, `WordWeightBasedParams`, `WordSm2Params`. **EF Core migrations are not used.** Schema changes are made by editing the SQL files in `VocabularyTrainer.Database/`, by hand-writing matching migration scripts in `VocabularyTrainer.Database/Migrations/`, and by running them manually against the database.
+- **WinApp.ApiClient** — implements the same `Domain` interfaces as `DataAccess`, but calls the REST API instead of SQL Server. In addition to repositories, it provides `HttpTrainingClient` (implements `ITrainingClient`) and `HttpAlgorithmCatalog` (implements `IAlgorithmCatalog`) for the WinApp. `Auth/` holds the client session: `AccountClient` (`IAccountClient`: login/register/reset/logout, silent restore) and `AuthHeaderHandler` (adds the bearer token, refreshes once on 401, throws `SessionExpiredException` when the session is gone). The refresh token is persisted through `ITokenStore`, which the host supplies. `AccountSettingsClient` (`IAccountSettingsClient`) covers `api/me`: display name, password change (keeps this device, signs out the others), linked sign-in methods, sign-out everywhere.
+- **WinApp** — MVP pattern. Startup (`Program.SignIn`) restores the session from `DpapiTokenStore` or shows `LoginForm` (`LoginFormPresenter`); `MainFormPresenter` takes the signed-in user from `IAccountClient.CurrentUser`. Sign-out and session expiry restart the process. `MainFormPresenter` (split across partial classes per tab — `MyWords`, `MyDictionaries`, `AddWord`, `TrainYourself`, `Account`) holds all UI logic; `IMainFormView`/`MainForm` is the passive view. The Account tab is built in code (`MainForm.Account.cs`, auto-sizing layout panels), not in the designer. Every key control gets a hover hint: `MainForm.ToolTips.cs` for designer controls, `_toolTip.SetToolTip` at creation for controls built in code; keep hints in sync with behaviour when changing a control. DI is wired in `Infrastructure/AppStart/DependencyResolver`. User-facing strings live in `Infrastructure/Constants.cs`.
+- **Common** — universal class library (future NuGet). Contains `Result`/`Result<T>` wrappers (carrying a `ResultErrorKind` for the failure category — `Validation` / `NotFound` / `Conflict` / `Unauthorized` / `TooManyRequests` / `Unknown`) and shared extensions (e.g., `IsNullOrEmpty`). Host-agnostic; no web concepts. Suitable for WinForms, the API, and any future client.
+- **Database** — SQL Server Data Tools `.sqlproj` kept as a **mirror of the production schema**. Schema files: `Users`, `UserIdentities`, `RefreshTokens`, `VerificationCodes`, `Algorithms`, `Dictionaries`, `Words`, `WordTranslations`, `WordWeightBasedParams`, `WordSm2Params`. **EF Core migrations are not used.** Schema changes are made by editing the SQL files in `VocabularyTrainer.Database/`, by hand-writing matching migration scripts in `VocabularyTrainer.Database/Migrations/`, and by running them manually against the database.
+
+## Authentication
+
+One **account** (`Users`) per person, many **identities** (`UserIdentities`: unique `(Provider, ProviderKey)`) — the ways to sign in. Provider codes live in `IdentityProviders` (`email`, `phone`, `telegram`, `google`, `apple`, `facebook`). `ProviderKey` is canonical: lower-cased email, E.164 phone, or the provider's stable user id (never an email for external providers). The password belongs to the account (`Users.PasswordHash`, nullable) and works with any email/phone identity of that account.
+
+Every sign-in path ends in `AuthService.IssueTokensAsync`: the API issues its **own** short-lived JWT access token (`sub` = user id, 15 min, `Jwt` config section) plus an opaque refresh token (60 days, stored only as SHA-256 in `RefreshTokens`). Refresh **rotates** the token; presenting an already-rotated token revokes all of the user's sessions (theft detection). Password reset also revokes all sessions.
+
+One-time codes (`VerificationCodes`, SHA-256 bound to channel/target/purpose) confirm ownership of an email before registration, password reset, or linking. Limits (TTL, resend cooldown, per-hour cap, max attempts) come from the `Auth` config section. The credential endpoints (codes, register, login, external, password reset) are also rate-limited per IP; refresh and logout are not, because server-side clients and NAT-ed users share one IP.
+
+**API rules.** All endpoints require a bearer token (global fallback policy); `AuthController` is `[AllowAnonymous]`. Controllers take the user id **only** from `BaseApiController.CurrentUserId` (the `sub` claim) — never from the request. Contracts carry no `UserId`. Domain services keep their `int userId` parameters.
+
+**Extending.**
+- New code delivery channel (Telegram/Viber for phone numbers, SMS): implement `IVerificationCodeSender` with `Channel = IdentityProviders.Phone` and register it. Phone normalization lives in `LoginNormalizer`.
+- New sign-in provider (Telegram, Google, Apple, Facebook): implement `IExternalAuthProvider` (validate the provider credential → `ExternalIdentity`) and register it; `POST api/auth/external/{provider}` then signs in or creates the account.
+- New client: send a distinct `ClientInfo.ClientType` (e.g. `"Telegram"`); store the refresh token securely on that platform.
+
+Accounts are never merged automatically by matching email. Linking an identity to an existing account goes through `api/me/identities` (with a code) and fails with 409 if the identity belongs to another account.
 
 ## Core Domain Concept: Pluggable Training Algorithms
 
@@ -76,7 +116,7 @@ At the service / API / WinApp boundaries the "which dictionaries to pull from" c
 
 `DictionaryScope` implements `IParsable<T>`, so ASP.NET Core binds it directly from the query string with no custom binder: the wire format is `?scope=all` or `?scope=42`. `HttpTrainingClient` builds the same URL via `scope.ToString()`. When scope is omitted on the API the default is `DictionaryScope.All` (matches the WinApp's "All dictionaries" combo-box default).
 
-Algorithm and repository layers stay on `int? dictionaryId` (their natural shape — `null` reaches a SQL `WHERE` predicate); only `TrainingService.GetCandidatesAsync` knows about scope. For `DictionaryScope.All` it asks each user dictionary's algorithm for `limit` cards in parallel and round-robin merges the results, so the user sees a balanced mix from every dictionary without any one dominating the batch.
+Algorithm and repository layers stay on `int? dictionaryId` (their natural shape — `null` reaches a SQL `WHERE` predicate); only `TrainingService.GetCandidatesAsync` knows about scope. For `DictionaryScope.All` it asks each user dictionary's algorithm for `limit` cards (sequentially — they share the request-scoped DbContext) and round-robin merges the results, so the user sees a balanced mix from every dictionary without any one dominating the batch.
 
 When adding a new algorithm:
 
@@ -88,13 +128,16 @@ When adding a new algorithm:
 
 ## Database
 
-SQL Server only. The connection string lives in [`VocabularyTrainer.Api/appsettings.json`](VocabularyTrainer.Api/appsettings.json) under `ConnectionStrings:Default` — read it from there if needed; do not duplicate credentials in documentation.
+SQL Server only. The connection string is the `ConnectionStrings:Default` secret (see **Secrets** above) — read it with `dotnet user-secrets list --project VocabularyTrainer.Api` if needed; never put credentials into tracked files or documentation.
 
 Schema is **DB-first**: edit the `.sql` files in `VocabularyTrainer.Database/` to keep the SSDT project in sync with the live schema, and write a corresponding migration script in `VocabularyTrainer.Database/Migrations/<NNN_description>.sql` that can be run against the existing database.
 
 ### Key tables and relationships
 
-- `Users` (PK `ID`).
+- `Users` (PK `ID`, `DisplayName`, `PasswordHash` NULL, `CreatedAt`, `IsBlocked`).
+- `UserIdentities` (PK `ID`, FK `UserId → Users ON DELETE CASCADE`, unique `(Provider, ProviderKey)`).
+- `RefreshTokens` (PK `ID`, FK `UserId → Users ON DELETE CASCADE`, unique `TokenHash binary(32)`, `RevokedAt`, `ReplacedById`).
+- `VerificationCodes` (PK `ID`, `Channel`, `Target`, `Purpose`, `CodeHash binary(32)`, `ExpiresAt`, `AttemptCount`, `ConsumedAt`).
 - `Algorithms` (PK `ID`, unique `Code`). Lookup table; rows are auto-seeded by the API on startup from the in-process algorithm registry.
 - `Dictionaries` (PK `ID`, FK `UserId → Users`, FK `AlgorithmId → Algorithms`, unique `(UserId, Name)`, `LanguageCode`).
 - `Words` (PK `ID`, FK `UserId → Users`, FK `DictionaryId → Dictionaries`, `Value`, `NormalizedText`, `LanguageCode`, `DateAdded`, `DateModified`, unique `(UserId, DictionaryId, NormalizedText)`). Words are now **per-user** — there is no global word table and no `UserWords` junction. There is no `Notes` column — explanations and mnemonics live as separate `WordTranslations` rows with the appropriate `Kind`.
@@ -198,7 +241,7 @@ Apply this layout in **any** class or file — presenters, services, repositorie
 ### Dependency injection
 
 - `DataAccess.AddDataAccess(connectionString)` — registers scoped `VocabularyTrainerDbContext`, scoped `IVocabularyTrainerDbContext` (same instance per request), and **scoped** repositories.
-- `BusinessLogic.AddVocabularyTrainerForApi(connectionString)` — for hosts that own the database (the API). Registers `DataAccess`, **scoped** core domain services (`UserService`/`WordService`/`DictionaryService`), **scoped** `IWordTrainingAlgorithm` implementations + `ITrainingAlgorithmRegistry`, **scoped** `ITrainingService` and `AlgorithmsSeeder`.
+- `BusinessLogic.AddVocabularyTrainerForApi(connectionString)` — for hosts that own the database (the API). Registers `DataAccess`, **scoped** core domain services (`WordService`/`DictionaryService`), **scoped** auth services (`AuthService`, `UserService`, `VerificationCodeService`, email code sender, external-provider registry; the host adds `ITokenService` + `IEmailSender` and binds `AuthOptions`), **scoped** `IWordTrainingAlgorithm` implementations + `ITrainingAlgorithmRegistry`, **scoped** `ITrainingService` and `AlgorithmsSeeder`.
 - `BusinessLogic.AddVocabularyTrainerForApiClient()` — for hosts that consume an external API (the WinApp). Registers **singleton** core services + **singleton** `IWordTrainerService` (no EF; avoids scoped dependencies inside a long-lived presenter host). The host must additionally register an `ITrainingClient` and `IAlgorithmCatalog` (the WinApp does this in `WinApp.ApiClient.DependencyInjection`).
 - `Api.BusinessLogic.AddApiBusinessLogic(connectionString)` — registers **scoped** `IApi*` services and calls `AddVocabularyTrainerForApi` internally. **This is what the API uses.**
 - WinApp wires API-backed repositories via `DependencyResolver` + `ServiceCollectionExtensions`, then calls `AddVocabularyTrainerForApiClient`.
@@ -224,9 +267,9 @@ There is **one** result type used end-to-end: `Common.Wrappers.Result` / `Result
 
 - `Successful` (bool)
 - `ErrorMessage` (string)
-- `ErrorKind` (`ResultErrorKind`: `Validation` / `NotFound` / `Conflict` / `Unknown`)
+- `ErrorKind` (`ResultErrorKind`: `Validation` / `NotFound` / `Conflict` / `Unauthorized` / `TooManyRequests` / `Unknown`)
 
-The same type travels from **domain services** (`BusinessLogic`), through `Api.BusinessLogic`, to the controller. **Repositories do not return `Result`** — they return DTOs/counts/`null` where appropriate and translate duplicate-key SQL or expected HTTP statuses into **domain exceptions** (`DuplicateKeyException`, `EntityNotFoundException`, `DomainValidationException`) so services can map them to `Result`/`Result<T>` with the right `ResultErrorKind`. The controller's `BaseApiController.ResolveFailure(IResult)` maps `ErrorKind` to the appropriate HTTP status code (400 / 404 / 409, fallback 500). The WinApp branches on `ErrorKind` to pick a user-facing message. There is no separate `ApiOperationResult` type and no message-text parsing anywhere.
+The same type travels from **domain services** (`BusinessLogic`), through `Api.BusinessLogic`, to the controller. **Repositories do not return `Result`** — they return DTOs/counts/`null` where appropriate and translate duplicate-key SQL or expected HTTP statuses into **domain exceptions** (`DuplicateKeyException`, `EntityNotFoundException`, `DomainValidationException`) so services can map them to `Result`/`Result<T>` with the right `ResultErrorKind`. The controller's `BaseApiController.ResolveFailure(IResult)` maps `ErrorKind` to the appropriate HTTP status code (400 / 404 / 409 / 401 / 429, fallback 500). The WinApp branches on `ErrorKind` to pick a user-facing message. There is no separate `ApiOperationResult` type and no message-text parsing anywhere.
 
 ### Repository and service interfaces
 
@@ -274,4 +317,4 @@ if (!result.Successful)
 }
 ```
 
-User loading uses the same pattern with `Result<UserModel>` from `IUserService.GetAsync`.
+Sign-in goes through `IAccountClient` (`LoginFormPresenter`), which returns the same `Result` with `ErrorKind`. An expired session surfaces as `SessionExpiredException`, which `ExecuteIfFreeAsync` turns into a message plus an app restart.
