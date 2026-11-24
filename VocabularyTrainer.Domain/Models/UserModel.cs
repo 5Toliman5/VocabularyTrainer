@@ -2,6 +2,7 @@ namespace VocabularyTrainer.Domain.Models
 {
 	public record UserModel
 	(
-		int Id
+		int Id,
+		string DisplayName
 	);
 }

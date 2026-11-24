@@ -28,6 +28,14 @@ namespace VocabularyTrainer.BusinessLogic.Services
 			return true;
 		}
 
+		public void ResetWords()
+		{
+			if (_session is null) return;
+
+			_session.Words.Clear();
+			_session.CurrentWord = null;
+		}
+
 		public int GetWordsCount() => CurrentSession.Words.Count;
 
 		public async Task LoadWordsAsync()

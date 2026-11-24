@@ -10,6 +10,9 @@ namespace VocabularyTrainer.Domain.Services
 		// Returns false, without touching the current word/session, when scope is unchanged.
 		bool SetScope(DictionaryScope scope);
 
+		// Drops the queued and current words, e.g. after their dictionary was deleted.
+		void ResetWords();
+
 		Task LoadWordsAsync();
 		WordDto? GetCurrentWord();
 		Task<WordDto?> GetNewWordAsync();

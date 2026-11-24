@@ -6,6 +6,9 @@ namespace VocabularyTrainer.DataAccess
 	public interface IVocabularyTrainerDbContext
 	{
 		DbSet<User> Users { get; }
+		DbSet<UserIdentity> UserIdentities { get; }
+		DbSet<RefreshToken> RefreshTokens { get; }
+		DbSet<VerificationCode> VerificationCodes { get; }
 		DbSet<Algorithm> Algorithms { get; }
 		DbSet<UserDictionary> Dictionaries { get; }
 		DbSet<Word> Words { get; }

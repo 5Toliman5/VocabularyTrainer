@@ -7,6 +7,9 @@ namespace VocabularyTrainer.DataAccess
 	public class VocabularyTrainerDbContext : DbContext, IVocabularyTrainerDbContext
 	{
 		public DbSet<User> Users => Set<User>();
+		public DbSet<UserIdentity> UserIdentities => Set<UserIdentity>();
+		public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+		public DbSet<VerificationCode> VerificationCodes => Set<VerificationCode>();
 		public DbSet<Algorithm> Algorithms => Set<Algorithm>();
 		public DbSet<UserDictionary> Dictionaries => Set<UserDictionary>();
 		public DbSet<Word> Words => Set<Word>();
@@ -21,6 +24,9 @@ namespace VocabularyTrainer.DataAccess
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			modelBuilder.ApplyConfiguration(new UserConfiguration());
+			modelBuilder.ApplyConfiguration(new UserIdentityConfiguration());
+			modelBuilder.ApplyConfiguration(new RefreshTokenConfiguration());
+			modelBuilder.ApplyConfiguration(new VerificationCodeConfiguration());
 			modelBuilder.ApplyConfiguration(new AlgorithmConfiguration());
 			modelBuilder.ApplyConfiguration(new UserDictionaryConfiguration());
 			modelBuilder.ApplyConfiguration(new WordConfiguration());

@@ -38,7 +38,7 @@ namespace VocabularyTrainer.DataAccess.Configurations
 			builder.HasOne(w => w.Dictionary)
 			       .WithMany(d => d.Words)
 			       .HasForeignKey(w => w.DictionaryId)
-			       .OnDelete(DeleteBehavior.Restrict);
+			       .OnDelete(DeleteBehavior.Cascade);
 
 			builder.HasMany(w => w.Translations)
 			       .WithOne(t => t.Word)
